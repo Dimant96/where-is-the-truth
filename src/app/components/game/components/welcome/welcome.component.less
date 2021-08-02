@@ -1,9 +1,17 @@
+@logo-size: 713px;
+
 :host {
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: url('src/assets/background/welcome.jpg') no-repeat;
-    background-size: 100% 100%;
+    background: #736e06;
     text-align: center;
+}
+
+.logo {
+    height: @logo-size;
+    width: @logo-size;
+    background: url('src/assets/background/welcome.jpg') center no-repeat;
+    border-radius: 50%;
 }
