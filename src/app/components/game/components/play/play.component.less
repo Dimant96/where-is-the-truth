@@ -1,0 +1,77 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 40px;
+
+    background: url("src/assets/background/first-team.jpg") left top no-repeat,
+    url("src/assets/background/second-team.jpg") right top no-repeat;
+    background-size: 50%, 50%;
+
+    background: url("src/assets/background/welcome.jpg");
+    background-size: 100% 100%;
+}
+
+.teams {
+    &__names {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        color: #fff;
+
+        & > * {
+            margin: 0;
+        }
+    }
+
+    &__score {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        color: #fff;
+
+        & > * {
+            margin: 0;
+        }
+    }
+
+    &__result {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        height: 100%;
+
+        &__wrapper {
+            color: #fff;
+            text-align: center;
+        }
+    }
+}
+
+.start {
+    text-align: center;
+    margin: auto;
+}
+
+.content-wrapper {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.timer {
+    //margin: 7% 0 1% 0;
+    font-size: 40px;
+    color: #fff;
+}
+
+.content {
+    padding: 20px 40px;
+    background: rgba(0, 0, 0, .6);
+    border: 4px solid #8d5210;
+    border-radius: 10px;
+    font-size: 30px;
+    color: #fff;
+}

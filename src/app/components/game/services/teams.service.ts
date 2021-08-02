@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {Team} from '../interfaces/team.interface';
 import {teamsStorageKey} from './constants/teams-storage-key.const';
 import {defaultTeams} from './constants/default-teams.const';
@@ -10,6 +10,10 @@ export class TeamsService {
 
     get teams(): Team[] {
         return this.teamsStore.value;
+    }
+
+    get teams$(): Observable<Team[]> {
+        return this.teamsStore.asObservable();
     }
 
     init() {
