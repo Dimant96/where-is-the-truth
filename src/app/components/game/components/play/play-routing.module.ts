@@ -7,10 +7,6 @@ const routes: Routes = [
         path: ':id',
         component: PlayComponent,
     },
-    {
-        path: '',
-        component: PlayComponent,
-    }
 ];
 
 @NgModule({
