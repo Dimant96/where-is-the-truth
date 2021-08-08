@@ -1,6 +1,7 @@
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {TimerComponent} from './timer.component';
+import {DualViewTimerModule} from '../../pipe/dual-view-timer/dual-view-timer.module';
 
 @NgModule({
     declarations: [TimerComponent],
@@ -8,7 +9,8 @@ import {TimerComponent} from './timer.component';
         TimerComponent
     ],
     imports: [
-        CommonModule
+        CommonModule,
+        DualViewTimerModule,
     ]
 })
 export class TimerModule {

@@ -1,19 +1,5 @@
 [
     {
-        "type": "Question",
-        "questions": [
-            {
-                "text": "Вот и первый вопрос"
-            },
-            {
-                "text": "Вот и 2 вопрос"
-            },
-            {
-                "text": "Конец"
-            }
-        ]
-    },
-    {
         "type": "Question with timer",
         "questions": [
             {
@@ -27,6 +13,20 @@
             {
                 "text": "Конец таймеру",
                 "timer": 100000
+            }
+        ]
+    },
+    {
+        "type": "Question",
+        "questions": [
+            {
+                "text": "Вот и первый вопрос"
+            },
+            {
+                "text": "Вот и 2 вопрос"
+            },
+            {
+                "text": "Конец"
             }
         ]
     },

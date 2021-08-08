@@ -1,4 +1,4 @@
-<h2 class="timer">{{question.timer - timer}}</h2>
+<h2 class="timer">{{timer | dualViewTimer : question.timer}}</h2>
 <div class="content">
     <img *ngIf="question.image" [src]="question.image" alt="Изображение">
     <h3 *ngIf="question.text">{{question.text}}</h3>

@@ -1,6 +1,7 @@
 import {Injectable} from '@angular/core';
 import {Subject, timer} from 'rxjs';
 import {map, repeatWhen, take, takeUntil} from 'rxjs/operators';
+import {timerInterval} from './constants/timer-interval.const';
 
 @Injectable({
     providedIn: 'root'
@@ -10,8 +11,8 @@ export class TimerService {
     private startSignal$ = new Subject();
     private accumulatedTime = 0;
 
-    readonly timer$ = timer(0, 1000).pipe(
-        map(time => this.accumulatedTime + time),
+    readonly timer$ = timer(0, timerInterval).pipe(
+        map(time => this.accumulatedTime + time * timerInterval),
         takeUntil(this.stopSignal$),
         repeatWhen(() => this.startSignal$)
     );
