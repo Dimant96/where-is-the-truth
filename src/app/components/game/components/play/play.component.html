@@ -4,19 +4,26 @@
             {{team.name}}
         </h1>
     </div>
-    <div *ngIf="(round$ | async) as round" class="content-wrapper">
-        <ng-container [ngSwitch]="round.type">
+    <div
+        *ngIf="(round$ | async) as round"
+        class="content-wrapper"
+    >
+        <ng-container
+            [ngSwitch]="round.type"
+        >
             <question
                 *ngSwitchCase="questionRound"
-                [round]="round"
+                [question]="round.questions[questionNumber$ | async]"
             ></question>
             <question-with-timer
                 *ngSwitchCase="questionWithTimerRound"
-                [round]="round"
+                [question]="round.questions[questionNumber$ | async]"
+                [timer]="timer$ | async"
             ></question-with-timer>
             <timer
                 *ngSwitchCase="timerRound"
-                [round]="round"
+                [question]="round.questions[questionNumber$ | async]"
+                [timer]="timer$ | async"
             ></timer>
         </ng-container>
     </div>
@@ -26,7 +33,7 @@
         <!--        <div class="content" [style.background]=""></div>-->
 <!--    </div>-->
     <div class="teams__score">
-        <h2 *ngFor="let team of teams">
+        <h2 *ngFor="let team of teams" (click)="nextQuestion()">
             {{team.score}}
         </h2>
     </div>

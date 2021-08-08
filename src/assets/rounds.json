@@ -1,6 +1,47 @@
 [
-    {"type" : "Question with timer"},
-    {"type" : "Timer"},
-    {"type" : "Question"},
-    {"type" : "Algeria"}
+    {
+        "type": "Question",
+        "questions": [
+            {
+                "text": "Вот и первый вопрос"
+            },
+            {
+                "text": "Вот и 2 вопрос"
+            },
+            {
+                "text": "Конец"
+            }
+        ]
+    },
+    {
+        "type": "Question with timer",
+        "questions": [
+            {
+                "text": "Вот и первый вопрос с таймером",
+                "timer": 20000
+            },
+            {
+                "text": "Вот и 2 вопрос тоже с таймером",
+                "timer": 50000
+            },
+            {
+                "text": "Конец таймеру",
+                "timer": 100000
+            }
+        ]
+    },
+    {
+        "type": "Timer",
+        "questions": [
+            {
+                "timer": 20000
+            },
+            {
+                "timer": 50000
+            },
+            {
+                "timer": 100000
+            }
+        ]
+    }
 ]

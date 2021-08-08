@@ -1,1 +1,4 @@
-<h3 class="content">Тут будет текст</h3>
+<div class="content">
+    <img *ngIf="question.image" [src]="question.image" alt="Изображение">
+    <h3 *ngIf="question.text">{{question.text}}</h3>
+</div>

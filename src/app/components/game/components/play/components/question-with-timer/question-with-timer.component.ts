@@ -1,5 +1,5 @@
-import {Component, OnInit, ChangeDetectionStrategy, Input} from '@angular/core';
-import {Round} from '../../services/interfaces/round.interface';
+import {Component, ChangeDetectionStrategy, Input} from '@angular/core';
+import {CommonQuestionWithTimer} from '../../interfaces/question.interface';
 
 @Component({
     selector: 'question-with-timer',
@@ -7,13 +7,7 @@ import {Round} from '../../services/interfaces/round.interface';
     styleUrls: ['./question-with-timer.component.less'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class QuestionWithTimerComponent implements OnInit {
-    @Input() round: Round;
-
-    constructor() {
-    }
-
-    ngOnInit(): void {
-    }
-
+export class QuestionWithTimerComponent {
+    @Input() question: CommonQuestionWithTimer;
+    @Input() timer: number;
 }

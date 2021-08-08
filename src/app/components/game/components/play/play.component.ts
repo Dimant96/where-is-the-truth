@@ -13,14 +13,19 @@ export class PlayComponent implements OnInit {
     readonly questionWithTimerRound = RoundType.QuestionWithTimer;
     readonly timerRound = RoundType.Timer;
 
-    teams$ = this.teamsService.teams$;
-    round$ = this.roundService.round$;
-    roundNumber$ = this.roundService.roundNumber$;
+    readonly teams$ = this.teamsService.teams$;
+    readonly round$ = this.roundService.round$;
+    readonly questionNumber$ = this.roundService.questionNumber$;
+    readonly timer$ = this.roundService.timer$;
 
     constructor(private roundService: RoundService, private teamsService: TeamsService) {
     }
 
     ngOnInit(): void {
+    }
+
+    nextQuestion() {
+        this.roundService.nextQuestion();
     }
 
     @HostListener('keydown.enter')

@@ -1,5 +1,5 @@
-import {Component, OnInit, ChangeDetectionStrategy, Input} from '@angular/core';
-import {Round} from '../../services/interfaces/round.interface';
+import {Component, ChangeDetectionStrategy, Input} from '@angular/core';
+import {CommonQuestion} from '../../interfaces/question.interface';
 
 @Component({
     selector: 'question',
@@ -7,13 +7,6 @@ import {Round} from '../../services/interfaces/round.interface';
     styleUrls: ['./question.component.less'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class QuestionComponent implements OnInit {
-    @Input() round: Round;
-
-    constructor() {
-    }
-
-    ngOnInit(): void {
-    }
-
+export class QuestionComponent {
+    @Input() question: CommonQuestion;
 }
