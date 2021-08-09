@@ -1,5 +1,5 @@
 import {Component, ChangeDetectionStrategy, Input} from '@angular/core';
-import {CommonQuestionWithTimer} from '../../interfaces/question.interface';
+import {CommonQuestionWithTimer} from '../../../../interfaces/question.interface';
 
 @Component({
     selector: 'question-with-timer',

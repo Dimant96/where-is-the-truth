@@ -1,33 +1,25 @@
-// @ts-ignore
 import rounds from '../../../../../../assets/rounds.json';
 import {Injectable} from '@angular/core';
-import {BehaviorSubject, Observable} from 'rxjs';
+import {Observable} from 'rxjs';
 import {Round} from '../interfaces/round.interface';
-import {map} from 'rxjs/operators';
 import {TimerService} from './timer.service';
+import {Params, Router} from '@angular/router';
 
 @Injectable({
     providedIn: 'root'
 })
 export class RoundService {
-    private roundNumberStore$ = new BehaviorSubject(0);
-    private questionNumberStore$ = new BehaviorSubject(0);
-
-    get round$(): Observable<Round> {
-        return this.roundNumberStore$.pipe(
-            map(selectedRound => rounds[selectedRound] as Round),
-        );
-    }
-
-    get questionNumber$(): Observable<number> {
-        return this.questionNumberStore$.asObservable();
-    }
+    constructor(
+        private timerService: TimerService,
+        private router: Router,
+    ) {}
 
     get timer$(): Observable<number> {
         return this.timerService.timer$;
     }
 
-    constructor(private timerService: TimerService) {
+    getRound({round}: Params): Round {
+        return rounds[round] as Round;
     }
 
     pauseTimer() {
@@ -42,22 +34,20 @@ export class RoundService {
         this.timerService.reset();
     }
 
-    nextQuestion() {
-        const selectedRound = this.roundNumberStore$.value;
-        const questionsLength = (rounds[selectedRound] as Round)
+    nextQuestion(round: number, question: number) {
+        const questionsLength = (rounds[round] as Round)
             .questions
             .length;
-        const nextSelectedQuestion = this.questionNumberStore$.value + 1;
+        const nextQuestionNumber = question + 1;
 
         this.resetTimer();
 
-        if (nextSelectedQuestion < questionsLength) {
-            this.questionNumberStore$.next(nextSelectedQuestion);
+        if (nextQuestionNumber < questionsLength) {
+            this.router.navigate(['play', round, nextQuestionNumber]);
 
             return;
         }
 
-        this.questionNumberStore$.next(0);
-        this.roundNumberStore$.next(selectedRound + 1);
+        this.router.navigate(['play', round + 1, 0]);
     }
 }
