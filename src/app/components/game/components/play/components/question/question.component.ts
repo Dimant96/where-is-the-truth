@@ -1,4 +1,4 @@
-import {Component, ChangeDetectionStrategy} from '@angular/core';
+import {Component, ChangeDetectionStrategy, HostListener} from '@angular/core';
 import {RoundType} from '../../enums/round-type.enum';
 import {map} from 'rxjs/operators';
 import {RoundService} from '../../services/round.service';
@@ -21,6 +21,22 @@ export class QuestionComponent {
     readonly round$ = this.activatedRoute.parent.params.pipe(map(this.roundService.getRound));
     readonly questionNumber$ = this.activatedRoute.params.pipe(map(({question}) => question));
 
+    @HostListener('document:keydown.ArrowRight')
+    keydownArrowRight() {
+        this.roundService.goToQuestion(this.round, this.question + 1);
+    }
+
+    @HostListener('document:keydown.ArrowLeft')
+    keydownArrowLeft() {
+        if (this.question === 0) {
+            this.roundService.goToPreview(this.round);
+
+            return;
+        }
+
+        this.roundService.goToQuestion(this.round, this.question - 1);
+    }
+
     constructor(
         private roundService: RoundService,
         private teamsService: TeamsService,
@@ -28,10 +44,11 @@ export class QuestionComponent {
     ) {
     }
 
-    nextQuestion() {
-        const round = +this.activatedRoute.parent.snapshot.params.round;
-        const question = +this.activatedRoute.snapshot.params.question;
+    get round(): number {
+        return +this.activatedRoute.parent.snapshot.params.round;
+    }
 
-        this.roundService.nextQuestion(round, question);
+    get question(): number {
+        return +this.activatedRoute.snapshot.params.question;
     }
 }

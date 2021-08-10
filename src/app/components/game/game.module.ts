@@ -6,10 +6,11 @@ import { WelcomeComponent } from './components/welcome/welcome.component';
 import {StartComponent} from './components/start/start.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {TeamsService} from './services/teams.service';
+import { EndComponent } from './components/end/end.component';
 
 
 @NgModule({
-    declarations: [GameComponent, WelcomeComponent, StartComponent],
+    declarations: [GameComponent, WelcomeComponent, StartComponent, EndComponent],
     imports: [
         CommonModule,
         GameRoutingModule,

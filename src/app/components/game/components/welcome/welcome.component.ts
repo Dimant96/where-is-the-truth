@@ -1,5 +1,6 @@
-import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import {Component, OnInit, ChangeDetectionStrategy, HostListener} from '@angular/core';
 import {TeamsService} from '../../services/teams.service';
+import {Router} from '@angular/router';
 
 @Component({
     selector: 'app-welcome',
@@ -8,7 +9,12 @@ import {TeamsService} from '../../services/teams.service';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WelcomeComponent implements OnInit {
-    constructor(private teamsService: TeamsService) {}
+    @HostListener('document:keydown.ArrowRight')
+    keydownArrowRight() {
+        this.router.navigate(['start']);
+    }
+
+    constructor(private teamsService: TeamsService, private router: Router) {}
 
     ngOnInit() {
         this.teamsService.resetTeams();

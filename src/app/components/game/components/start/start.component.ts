@@ -1,8 +1,9 @@
-import {Component, OnInit, ChangeDetectionStrategy} from '@angular/core';
+import {Component, OnInit, ChangeDetectionStrategy, HostListener} from '@angular/core';
 import {FormArray, FormBuilder, Validators} from '@angular/forms';
 import {debounceTime} from 'rxjs/operators';
 import {TeamsService} from '../../services/teams.service';
 import {TeamsOrder} from '../../enums/teams-order.enum';
+import {Router} from '@angular/router';
 
 @Component({
     selector: 'app-start',
@@ -16,9 +17,20 @@ export class StartComponent implements OnInit {
 
     teamsNamesForm: FormArray;
 
+    @HostListener('document:keydown.ArrowRight')
+    keydownArrowRight() {
+        this.router.navigate(['play']);
+    }
+
+    @HostListener('document:keydown.ArrowLeft')
+    keydownArrowLeft() {
+        this.router.navigate(['welcome']);
+    }
+
     constructor(
         private formBuilder: FormBuilder,
-        private teamsService: TeamsService
+        private teamsService: TeamsService,
+        private router: Router,
     ) {}
 
     ngOnInit(): void {

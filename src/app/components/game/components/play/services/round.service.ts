@@ -12,7 +12,8 @@ export class RoundService {
     constructor(
         private timerService: TimerService,
         private router: Router,
-    ) {}
+    ) {
+    }
 
     get timer$(): Observable<number> {
         return this.timerService.timer$;
@@ -34,20 +35,45 @@ export class RoundService {
         this.timerService.reset();
     }
 
-    nextQuestion(round: number, question: number) {
+    isLastRound(round: number): boolean {
+        return round === rounds.length - 1;
+    }
+
+    goToQuestion(round: number, question: number) {
         const questionsLength = (rounds[round] as Round)
             .questions
             .length;
-        const nextQuestionNumber = question + 1;
 
         this.resetTimer();
 
-        if (nextQuestionNumber < questionsLength) {
-            this.router.navigate(['play', round, nextQuestionNumber]);
+        if (question < questionsLength) {
+            this.router.navigate(['play', round, question]);
 
             return;
         }
 
-        this.router.navigate(['play', round + 1, 0]);
+        this.router.navigate(['play', round, 'result']);
+    }
+
+    goToLastQuestion(round: number) {
+        const lastQuestionNumber = this.getRound({round}).questions.length - 1;
+
+        this.router.navigate(['play', round, lastQuestionNumber]);
+    }
+
+    goToResult(round: number) {
+        this.router.navigate(['play', round, 'result']);
+    }
+
+    goToPreview(round: number) {
+        this.router.navigate(['play', round, 'preview']);
+    }
+
+    goToStart() {
+        this.router.navigate(['start']);
+    }
+
+    goToEnd() {
+        this.router.navigate(['end']);
     }
 }

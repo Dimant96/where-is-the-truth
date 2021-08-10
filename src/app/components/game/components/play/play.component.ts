@@ -5,4 +5,6 @@ import {Component} from '@angular/core';
     templateUrl: './play.component.html',
     styleUrls: ['./play.component.less']
 })
-export class PlayComponent {}
+export class PlayComponent {
+
+}
