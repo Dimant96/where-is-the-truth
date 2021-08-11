@@ -54,6 +54,10 @@ export class RoundService {
         return round === rounds.length - 1;
     }
 
+    isFirsRound(round: number): boolean {
+        return round === 0;
+    }
+
     goToQuestion(round: number, question: number) {
         const {type} = this.getRound({round});
 
@@ -80,22 +84,6 @@ export class RoundService {
         const lastQuestionNumber = this.getRound({round}).questions.length - 1;
 
         this.router.navigate(['play', round, lastQuestionNumber]);
-    }
-
-    goToResult(round: number) {
-        this.router.navigate(['play', round, 'result']);
-    }
-
-    goToPreview(round: number) {
-        this.router.navigate(['play', round, 'preview']);
-    }
-
-    goToStart() {
-        this.router.navigate(['start']);
-    }
-
-    goToEnd() {
-        this.router.navigate(['end']);
     }
 
     toggleQuestionStatus(round: number) {

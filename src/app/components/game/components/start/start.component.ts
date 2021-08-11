@@ -3,7 +3,7 @@ import {FormArray, FormBuilder, Validators} from '@angular/forms';
 import {debounceTime} from 'rxjs/operators';
 import {TeamsService} from '../../services/teams.service';
 import {TeamsOrder} from '../../enums/teams-order.enum';
-import {Router} from '@angular/router';
+import {GameNavigationService} from '../../services/game-navigation.service';
 
 @Component({
     selector: 'app-start',
@@ -19,18 +19,18 @@ export class StartComponent implements OnInit {
 
     @HostListener('document:keydown.ArrowRight')
     keydownArrowRight() {
-        this.router.navigate(['play', 0, 'preview']);
+        this.gameNavigationService.goToPreview(0);
     }
 
     @HostListener('document:keydown.ArrowLeft')
     keydownArrowLeft() {
-        this.router.navigate(['welcome']);
+        this.gameNavigationService.goToWelcome();
     }
 
     constructor(
         private formBuilder: FormBuilder,
         private teamsService: TeamsService,
-        private router: Router,
+        private gameNavigationService: GameNavigationService,
     ) {}
 
     ngOnInit(): void {

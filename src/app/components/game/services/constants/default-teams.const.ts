@@ -5,4 +5,5 @@ export const defaultTeams = Array
     .map(() => ({
         name: '',
         score: 0,
+        winner: 0,
     }));

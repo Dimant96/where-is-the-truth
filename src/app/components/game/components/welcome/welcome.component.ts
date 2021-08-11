@@ -1,6 +1,6 @@
 import {Component, OnInit, ChangeDetectionStrategy, HostListener} from '@angular/core';
 import {TeamsService} from '../../services/teams.service';
-import {Router} from '@angular/router';
+import {GameNavigationService} from '../../services/game-navigation.service';
 
 @Component({
     selector: 'app-welcome',
@@ -11,10 +11,10 @@ import {Router} from '@angular/router';
 export class WelcomeComponent implements OnInit {
     @HostListener('document:keydown.ArrowRight')
     keydownArrowRight() {
-        this.router.navigate(['start']);
+        this.gameNavigationService.goToStart();
     }
 
-    constructor(private teamsService: TeamsService, private router: Router) {}
+    constructor(private teamsService: TeamsService, private gameNavigationService: GameNavigationService) {}
 
     ngOnInit() {
         this.teamsService.resetTeams();

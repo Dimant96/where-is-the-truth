@@ -4,6 +4,7 @@ import {map} from 'rxjs/operators';
 import {RoundService} from '../../services/round.service';
 import {TeamsService} from '../../../../services/teams.service';
 import {ActivatedRoute} from '@angular/router';
+import {GameNavigationService} from '../../../../services/game-navigation.service';
 
 @Component({
     selector: 'question',
@@ -24,18 +25,13 @@ export class QuestionComponent {
 
     @HostListener('document:keydown.ArrowRight')
     keydownArrowRight() {
-        this.roundService.goToQuestion(this.round, this.question + 1);
+        this.teamsService.resetScore();
+        this.gameNavigationService.goToResult(this.round);
     }
 
     @HostListener('document:keydown.ArrowLeft')
     keydownArrowLeft() {
-        if (this.question === 0) {
-            this.roundService.goToPreview(this.round);
-
-            return;
-        }
-
-        this.roundService.goToQuestion(this.round, this.question - 1);
+        this.gameNavigationService.goToPreview(this.round);
     }
 
     @HostListener('document:keydown.space')
@@ -86,6 +82,7 @@ export class QuestionComponent {
         private roundService: RoundService,
         private teamsService: TeamsService,
         private activatedRoute: ActivatedRoute,
+        private gameNavigationService: GameNavigationService,
     ) {
     }
 
