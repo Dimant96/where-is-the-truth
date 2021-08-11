@@ -1,4 +1,4 @@
 <div class="start">
-    <h1 class="start__stage-number">Этап {{roundNumber$ | async}}</h1>
+    <h1 class="start__stage-number">Этап {{(roundNumber$ | async) + 1}}</h1>
     <h2 class="start__stage-name">{{(round$ | async).name}}</h2>
 </div>

@@ -19,7 +19,7 @@ export class StartComponent implements OnInit {
 
     @HostListener('document:keydown.ArrowRight')
     keydownArrowRight() {
-        this.router.navigate(['play']);
+        this.router.navigate(['play', 0, 'preview']);
     }
 
     @HostListener('document:keydown.ArrowLeft')

@@ -1,5 +1,5 @@
 import {Component, ChangeDetectionStrategy, Input} from '@angular/core';
-import {Timer} from '../../../../interfaces/question.interface';
+import {Round} from '../../../../interfaces/round.interface';
 
 @Component({
     selector: 'timer',
@@ -8,6 +8,6 @@ import {Timer} from '../../../../interfaces/question.interface';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TimerComponent {
-    @Input() question: Timer;
+    @Input() round: Round;
     @Input() timer: number;
 }

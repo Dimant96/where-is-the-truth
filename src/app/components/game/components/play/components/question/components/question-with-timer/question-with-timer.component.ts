@@ -1,5 +1,5 @@
 import {Component, ChangeDetectionStrategy, Input} from '@angular/core';
-import {CommonQuestionWithTimer} from '../../../../interfaces/question.interface';
+import {Round} from '../../../../interfaces/round.interface';
 
 @Component({
     selector: 'question-with-timer',
@@ -8,6 +8,8 @@ import {CommonQuestionWithTimer} from '../../../../interfaces/question.interface
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class QuestionWithTimerComponent {
-    @Input() question: CommonQuestionWithTimer;
+    @Input() round: Round;
+    @Input() questionNumber: number;
+    @Input() isQuestionHide: boolean;
     @Input() timer: number;
 }

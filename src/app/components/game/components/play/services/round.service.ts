@@ -1,14 +1,19 @@
 import rounds from '../../../../../../assets/rounds.json';
 import {Injectable} from '@angular/core';
-import {Observable} from 'rxjs';
+import {BehaviorSubject, Observable} from 'rxjs';
 import {Round} from '../interfaces/round.interface';
 import {TimerService} from './timer.service';
 import {Params, Router} from '@angular/router';
+import {RoundType} from '../enums/round-type.enum';
+
+const roundsWithoutQuestion: RoundType[] = [RoundType.Timer];
 
 @Injectable({
     providedIn: 'root'
 })
 export class RoundService {
+    private isQuestionHideStore$ = new BehaviorSubject<boolean>(true);
+
     constructor(
         private timerService: TimerService,
         private router: Router,
@@ -16,19 +21,29 @@ export class RoundService {
     }
 
     get timer$(): Observable<number> {
+        setTimeout(() => this.timerService.stop(), 0);
+
         return this.timerService.timer$;
+    }
+
+    get isQuestionHide(): boolean {
+        return this.isQuestionHideStore$.value;
+    }
+
+    get isQuestionHide$(): Observable<boolean> {
+        return this.isQuestionHideStore$.asObservable();
     }
 
     getRound({round}: Params): Round {
         return rounds[round] as Round;
     }
 
-    pauseTimer() {
-        this.timerService.pause();
-    }
-
     startTimer() {
         this.timerService.start();
+    }
+
+    stopTimer() {
+        this.timerService.stop();
     }
 
     resetTimer() {
@@ -40,11 +55,17 @@ export class RoundService {
     }
 
     goToQuestion(round: number, question: number) {
+        const {type} = this.getRound({round});
+
+        if (roundsWithoutQuestion.includes(type)) {
+            this.router.navigate(['play', round, 0]);
+
+            return;
+        }
+
         const questionsLength = (rounds[round] as Round)
             .questions
             .length;
-
-        this.resetTimer();
 
         if (question < questionsLength) {
             this.router.navigate(['play', round, question]);
@@ -75,5 +96,31 @@ export class RoundService {
 
     goToEnd() {
         this.router.navigate(['end']);
+    }
+
+    toggleQuestionStatus(round: number) {
+        const {type} = this.getRound({round});
+
+        switch (type) {
+            case RoundType.Question:
+                break;
+            case RoundType.QuestionWithTimer:
+            case RoundType.Timer:
+                this.toggleTimerStatus();
+
+                break;
+        }
+
+        this.isQuestionHideStore$.next(!this.isQuestionHide);
+    }
+
+    private toggleTimerStatus() {
+        if (this.isQuestionHide) {
+            this.startTimer();
+
+            return;
+        }
+
+        this.stopTimer();
     }
 }

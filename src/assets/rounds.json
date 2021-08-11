@@ -2,18 +2,16 @@
     {
         "type": "Question with timer",
         "name": "Question with timer",
+        "timer": 20000,
         "questions": [
             {
-                "text": "Вот и первый вопрос с таймером",
-                "timer": 20000
+                "text": "Вот и первый вопрос с таймером"
             },
             {
-                "text": "Вот и 2 вопрос тоже с таймером",
-                "timer": 50000
+                "text": "Вот и 2 вопрос тоже с таймером"
             },
             {
-                "text": "Конец таймеру",
-                "timer": 100000
+                "text": "Конец таймеру"
             }
         ]
     },
@@ -35,16 +33,6 @@
     {
         "type": "Timer",
         "name": "Timer",
-        "questions": [
-            {
-                "timer": 20000
-            },
-            {
-                "timer": 50000
-            },
-            {
-                "timer": 100000
-            }
-        ]
+        "timer": 20000
     }
 ]

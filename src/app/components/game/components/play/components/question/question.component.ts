@@ -20,6 +20,7 @@ export class QuestionComponent {
     readonly timer$ = this.roundService.timer$;
     readonly round$ = this.activatedRoute.parent.params.pipe(map(this.roundService.getRound));
     readonly questionNumber$ = this.activatedRoute.params.pipe(map(({question}) => question));
+    readonly isQuestionHide$ = this.roundService.isQuestionHide$;
 
     @HostListener('document:keydown.ArrowRight')
     keydownArrowRight() {
@@ -37,6 +38,50 @@ export class QuestionComponent {
         this.roundService.goToQuestion(this.round, this.question - 1);
     }
 
+    @HostListener('document:keydown.space')
+    keyDownSpace() {
+        this.roundService.toggleQuestionStatus(this.round);
+    }
+
+    @HostListener('document:keydown.r')
+    keyDownR() {
+        this.roundService.resetTimer();
+    }
+
+    @HostListener('document:keydown.1')
+    keyDown1() {
+        this.roundService.goToQuestion(this.round, this.question + 1);
+
+        if (this.teamsService.isTakeTurnsGame) {
+            this.teamsService.bumpScoreReasonsTeam();
+
+            return;
+        }
+
+        this.teamsService.bumpScore(0);
+    }
+
+    @HostListener('document:keydown.2')
+    keyDown2() {
+        this.roundService.goToQuestion(this.round, this.question + 1);
+
+        if (this.teamsService.isTakeTurnsGame) {
+            return;
+        }
+
+        this.teamsService.bumpScore(1);
+    }
+
+    @HostListener('document:keydown.g')
+    keyDownG() {
+        this.teamsService.changeRespondingTeamMode();
+    }
+
+    @HostListener('document:keydown.t')
+    keyDownT() {
+        this.teamsService.nextRespondingTeam();
+    }
+
     constructor(
         private roundService: RoundService,
         private teamsService: TeamsService,
@@ -50,5 +95,9 @@ export class QuestionComponent {
 
     get question(): number {
         return +this.activatedRoute.snapshot.params.question;
+    }
+
+    isTeamBlur(teamNumber: number): boolean {
+        return this.teamsService.isTakeTurnsGame ? this.teamsService.isRespondingTeam(teamNumber) : false;
     }
 }

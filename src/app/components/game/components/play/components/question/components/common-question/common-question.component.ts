@@ -1,5 +1,5 @@
 import {Component, ChangeDetectionStrategy, Input} from '@angular/core';
-import {CommonQuestion} from '../../../../interfaces/question.interface';
+import {Round} from '../../../../interfaces/round.interface';
 
 @Component({
   selector: 'common-question',
@@ -8,5 +8,7 @@ import {CommonQuestion} from '../../../../interfaces/question.interface';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CommonQuestionComponent {
-    @Input() question: CommonQuestion;
+    @Input() round: Round;
+    @Input() questionNumber: number;
+    @Input() isQuestionHide: boolean;
 }
