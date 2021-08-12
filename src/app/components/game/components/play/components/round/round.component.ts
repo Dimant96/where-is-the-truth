@@ -7,6 +7,8 @@ import {RoundType} from '../../enums/round-type.enum';
 import {map} from 'rxjs/operators';
 import {TimerService} from '../../services/timer.service';
 import {Observable} from 'rxjs';
+import {playAudio} from '../../../../utils/play-audio';
+import {AudioPath} from '../../../../enums/audio.enum';
 
 @Component({
     selector: 'app-round',
@@ -111,6 +113,8 @@ export class RoundComponent implements OnInit {
             this.isWaitingResponse = false;
         }
 
+        playAudio(AudioPath.WinQuestion);
+
         if (this.teamsService.isTakeTurnsGame) {
             this.teamsService.bumpScoreReasonsTeam();
             return;
@@ -132,9 +136,11 @@ export class RoundComponent implements OnInit {
         }
 
         if (this.teamsService.isTakeTurnsGame) {
+            playAudio(AudioPath.LoseQuestion);
             return;
         }
 
+        playAudio(AudioPath.WinQuestion);
         this.teamsService.bumpScore(1);
     }
 
