@@ -5,6 +5,8 @@ import {ActivatedRoute} from '@angular/router';
 import {GameNavigationService} from '../../../../services/game-navigation.service';
 import {RoundType} from '../../enums/round-type.enum';
 import {map} from 'rxjs/operators';
+import {TimerService} from '../../services/timer.service';
+import {Observable} from 'rxjs';
 
 @Component({
     selector: 'app-round',
@@ -18,11 +20,14 @@ export class RoundComponent implements OnInit {
     readonly timerRound = RoundType.Timer;
 
     readonly teams$ = this.teamsService.teams$;
-    readonly timer$ = this.roundService.timer$;
-    readonly round$ = this.activatedRoute.parent.params.pipe(map(this.roundService.getRound));
-    readonly questionNumber$ = this.activatedRoute.params.pipe(map(({question}) => question));
-
-    // readonly isQuestionHide$ = this.roundService.isQuestionHide$;
+    readonly timer$ = this.timerService.timer$;
+    readonly questionNumber$ = this.activatedRoute
+        .params
+        .pipe(map(({question}) => question));
+    readonly round$ = this.activatedRoute
+        .parent
+        .params
+        .pipe(map(({round}) => this.roundService.getRound(round)));
 
     isWaitingResponse = false;
     isRoundStart = false;
@@ -31,8 +36,14 @@ export class RoundComponent implements OnInit {
         private roundService: RoundService,
         private teamsService: TeamsService,
         private activatedRoute: ActivatedRoute,
+        private timerService: TimerService,
         private gameNavigationService: GameNavigationService,
-    ) {
+    ) {}
+
+    get questionNumberFromParams$(): Observable<number> {
+        return this.activatedRoute
+            .params
+            .pipe(map(({question}) => question));
     }
 
     @HostListener('document:keydown.ArrowRight')
@@ -58,8 +69,17 @@ export class RoundComponent implements OnInit {
         }
     }
 
+    @HostListener('document:keydown.r')
+    keyDownR() {
+        this.timerService.stop();
+    }
+
     @HostListener('document:keydown.space')
     keyDownSpace() {
+        if (!this.timerService.isTimerWorked) {
+            this.timerService.start();
+        }
+
         if (this.isWaitingResponse) {
             return;
         }

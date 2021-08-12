@@ -1,31 +1,30 @@
 import {Injectable} from '@angular/core';
-import {Subject, timer} from 'rxjs';
-import {map, repeatWhen, takeUntil} from 'rxjs/operators';
+import {BehaviorSubject, of, timer} from 'rxjs';
+import {map, switchMap} from 'rxjs/operators';
 import {timerInterval} from './constants/timer-interval.const';
 
 @Injectable({
     providedIn: 'root'
 })
 export class TimerService {
-    private stopSignal$ = new Subject();
-    private startSignal$ = new Subject();
+    private isTimerWorked$ = new BehaviorSubject<boolean>(false);
 
-    readonly timer$ = timer(0, timerInterval).pipe(
-        map(time => time * timerInterval),
-        takeUntil(this.stopSignal$),
-        repeatWhen(() => this.startSignal$)
-    );
+    readonly timer$ = this.isTimerWorked$
+        .asObservable()
+        .pipe(
+            switchMap(isWorked => isWorked ? timer(0, timerInterval) : of(0)),
+            map(time => time * timerInterval),
+        );
+
+    get isTimerWorked(): boolean {
+        return this.isTimerWorked$.value;
+    }
 
     stop() {
-        this.stopSignal$.next();
+        this.isTimerWorked$.next(false);
     }
 
     start() {
-        this.startSignal$.next();
-    }
-
-    reset() {
-        this.stop();
-        this.start();
+        this.isTimerWorked$.next(true);
     }
 }
