@@ -9,7 +9,6 @@ import {TeamsService} from './services/teams.service';
 import { EndComponent } from './components/end/end.component';
 import {GameNavigationService} from './services/game-navigation.service';
 
-
 @NgModule({
     declarations: [GameComponent, WelcomeComponent, StartComponent, EndComponent],
     imports: [
