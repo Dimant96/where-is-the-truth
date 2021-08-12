@@ -1,6 +1,7 @@
 import {Component} from '@angular/core';
 import {TeamsService} from '../../services/teams.service';
 import {map} from 'rxjs/operators';
+import {getWinnerTeam} from './utils/get-winner-team';
 
 @Component({
     selector: 'app-end',
@@ -8,9 +9,7 @@ import {map} from 'rxjs/operators';
     styleUrls: ['./end.component.less']
 })
 export class EndComponent {
-    winnerTeam$ = this.teamsService.teams$.pipe(
-        map(teams => teams.sort((first, second) => first.score - second.score)[0])
-    );
+    winnerTeam$ = this.teamsService.teams$.pipe(map(getWinnerTeam));
 
     constructor(private teamsService: TeamsService) {}
 }

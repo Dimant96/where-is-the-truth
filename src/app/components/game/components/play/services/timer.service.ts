@@ -3,9 +3,7 @@ import {BehaviorSubject, of, timer} from 'rxjs';
 import {map, switchMap} from 'rxjs/operators';
 import {timerInterval} from './constants/timer-interval.const';
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable()
 export class TimerService {
     private isTimerWorked$ = new BehaviorSubject<boolean>(false);
 

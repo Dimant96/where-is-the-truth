@@ -12,7 +12,8 @@ import {Observable} from 'rxjs';
     selector: 'app-round',
     templateUrl: './round.component.html',
     styleUrls: ['./round.component.less'],
-    changeDetection: ChangeDetectionStrategy.OnPush
+    providers: [TimerService],
+    changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RoundComponent implements OnInit {
     readonly questionRound = RoundType.Question;
@@ -100,11 +101,15 @@ export class RoundComponent implements OnInit {
 
     @HostListener('document:keydown.1')
     keyDown1() {
-        if (this.roundService.isAllQuestionsResolve(this.round, this.question)) {
-            return;
-        }
+        const isRoundWithQuestion = this.roundService.isRoundHasQuestion(this.round);
 
-        this.isWaitingResponse = false;
+        if (isRoundWithQuestion) {
+            if (this.roundService.isAllQuestionsResolve(this.round, this.question)) {
+                return;
+            }
+
+            this.isWaitingResponse = false;
+        }
 
         if (this.teamsService.isTakeTurnsGame) {
             this.teamsService.bumpScoreReasonsTeam();
@@ -116,11 +121,15 @@ export class RoundComponent implements OnInit {
 
     @HostListener('document:keydown.2')
     keyDown2() {
-        if (this.roundService.isAllQuestionsResolve(this.round, this.question)) {
-            return;
-        }
+        const isRoundWithQuestion = this.roundService.isRoundHasQuestion(this.round);
 
-        this.isWaitingResponse = false;
+        if (isRoundWithQuestion) {
+            if (this.roundService.isAllQuestionsResolve(this.round, this.question)) {
+                return;
+            }
+
+            this.isWaitingResponse = false;
+        }
 
         if (this.teamsService.isTakeTurnsGame) {
             return;

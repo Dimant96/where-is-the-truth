@@ -2,9 +2,7 @@ import rounds from '../../../../../../assets/rounds.json';
 import {Injectable} from '@angular/core';
 import {Round} from '../interfaces/round.interface';
 
-@Injectable({
-    providedIn: 'root'
-})
+@Injectable()
 export class RoundService {
     getRound(round: number): Round {
         return rounds[round] as Round;
@@ -16,6 +14,10 @@ export class RoundService {
 
     isFirsRound(round: number): boolean {
         return round === 0;
+    }
+
+    isRoundHasQuestion(round: number) {
+        return this.getRound(round).questions;
     }
 
     isAllQuestionsResolve(round: number, question: number) {

@@ -12,7 +12,10 @@ import {GameNavigationService} from '../../../../services/game-navigation.servic
 })
 export class PreviewComponent {
     readonly roundNumber$ = this.activatedRoute.parent.params.pipe(map(({round}) => +round));
-    readonly round$ = this.activatedRoute.parent.params.pipe(map(this.roundService.getRound));
+    readonly round$ = this.activatedRoute
+        .parent
+        .params
+        .pipe(map(({round}) => this.roundService.getRound(round)));
 
     @HostListener('document:keydown.ArrowRight')
     keydownArrowRight() {

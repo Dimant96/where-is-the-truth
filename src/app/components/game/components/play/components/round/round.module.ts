@@ -6,13 +6,12 @@ import {QuestionWithTimerComponent} from './components/question-with-timer/quest
 import {TimerComponent} from './components/timer/timer.component';
 import {RoundComponent} from './round.component';
 
-
 @NgModule({
     declarations: [RoundComponent, CommonQuestionComponent, QuestionWithTimerComponent, TimerComponent],
     imports: [
         CommonModule,
         DualViewTimerModule
-    ]
+    ],
 })
 export class RoundModule {
 }

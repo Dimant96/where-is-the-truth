@@ -7,6 +7,7 @@ import {StartComponent} from './components/start/start.component';
 import {ReactiveFormsModule} from '@angular/forms';
 import {TeamsService} from './services/teams.service';
 import { EndComponent } from './components/end/end.component';
+import {GameNavigationService} from './services/game-navigation.service';
 
 
 @NgModule({
@@ -16,7 +17,7 @@ import { EndComponent } from './components/end/end.component';
         GameRoutingModule,
         ReactiveFormsModule
     ],
-    providers: [TeamsService],
+    providers: [TeamsService, GameNavigationService],
 })
 export class GameModule {
 }

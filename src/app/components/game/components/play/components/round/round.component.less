@@ -1,13 +1,14 @@
+@import '../../../../../../../assets/styles/background';
+
 :host {
+    .teams-background();
+
     display: flex;
     flex-direction: column;
     height: 100%;
     padding: 40px;
-
-    background: url("src/assets/background/first-team.jpg") left top no-repeat,
-    url("src/assets/background/second-team.jpg") right top no-repeat;
-    background-size: 50% 100%, 50% 100%;
 }
+
 .teams {
     &__names {
         display: flex;
