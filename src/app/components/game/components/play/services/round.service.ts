@@ -3,10 +3,11 @@ import {Injectable} from '@angular/core';
 import {BehaviorSubject, Observable} from 'rxjs';
 import {Round} from '../interfaces/round.interface';
 import {TimerService} from './timer.service';
-import {Params, Router} from '@angular/router';
+import {Params} from '@angular/router';
 import {RoundType} from '../enums/round-type.enum';
+import {GameNavigationService} from '../../../services/game-navigation.service';
 
-const roundsWithoutQuestion: RoundType[] = [RoundType.Timer];
+// const roundsWithoutQuestion: RoundType[] = [RoundType.Timer];
 
 @Injectable({
     providedIn: 'root'
@@ -16,7 +17,7 @@ export class RoundService {
 
     constructor(
         private timerService: TimerService,
-        private router: Router,
+        private gameNavigationService: GameNavigationService,
     ) {
     }
 
@@ -58,32 +59,21 @@ export class RoundService {
         return round === 0;
     }
 
+    isAllQuestionsResolve(round: number, question: number) {
+        const lastQuestionNumber = this.getRound({round}).questions.length - 1;
+
+        return question > lastQuestionNumber;
+    }
+
     goToQuestion(round: number, question: number) {
-        const {type} = this.getRound({round});
-
-        if (roundsWithoutQuestion.includes(type)) {
-            this.router.navigate(['play', round, 0]);
-
-            return;
-        }
-
-        const questionsLength = (rounds[round] as Round)
+        const questionsLength = this.getRound({round})
             .questions
             .length;
 
         if (question < questionsLength) {
-            this.router.navigate(['play', round, question]);
-
+            this.gameNavigationService.goToQuestion(round, question);
             return;
         }
-
-        this.router.navigate(['play', round, 'result']);
-    }
-
-    goToLastQuestion(round: number) {
-        const lastQuestionNumber = this.getRound({round}).questions.length - 1;
-
-        this.router.navigate(['play', round, lastQuestionNumber]);
     }
 
     toggleQuestionStatus(round: number) {

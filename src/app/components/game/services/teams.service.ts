@@ -5,6 +5,7 @@ import {teamsStorageKey} from './constants/teams-storage-key.const';
 import {defaultTeams} from './constants/default-teams.const';
 
 const scoreBumpValue = 100;
+const winnerBumpValue = 1;
 
 @Injectable()
 export class TeamsService {
@@ -17,10 +18,6 @@ export class TeamsService {
 
     get teams$(): Observable<Team[]> {
         return this.teamsStore$.asObservable();
-    }
-
-    get respondingTeamNumber$(): Observable<number> {
-        return this.respondingTeamNumberStore$.asObservable();
     }
 
     get isTakeTurnsGame(): boolean {
@@ -49,15 +46,27 @@ export class TeamsService {
     }
 
     bumpScoreReasonsTeam() {
+        this.bumpScore(this.respondingTeamNumberStore$.value);
+    }
+
+    bumpWinnerTeam(teamIndex: number) {
         const teams = [...this.teams];
-        const respondingTeamNumber = this.respondingTeamNumberStore$.value;
-        teams[respondingTeamNumber].score += scoreBumpValue;
+        teams[teamIndex].winner += winnerBumpValue;
 
         this.teamsStore$.next(teams);
     }
 
     resetTeams() {
         this.teamsStore$.next(defaultTeams);
+    }
+
+    resetScore() {
+        const teams = this.teams.map(team => ({
+            ...team,
+            score: 0,
+        }));
+
+        this.teamsStore$.next(teams);
     }
 
     updateTeamsNames(names: string[]) {
@@ -69,10 +78,11 @@ export class TeamsService {
         this.teamsStore$.next(teams);
     }
 
-    nextRespondingTeam() {
+    toggleRespondingTeam() {
         const respondingTeam = this.respondingTeamNumberStore$.value;
+        const isLastTeam = respondingTeam === this.teams.length - 1;
 
-        if (this.respondingTeamNumberStore$.value === this.teams.length - 1) {
+        if (isLastTeam) {
             this.respondingTeamNumberStore$.next(0);
             return;
         }
@@ -80,7 +90,7 @@ export class TeamsService {
         this.respondingTeamNumberStore$.next(respondingTeam + 1);
     }
 
-    changeRespondingTeamMode() {
+    toggleRespondingTeamMode() {
         if (this.isTakeTurnsGame) {
             this.respondingTeamNumberStore$.next(null);
             return;

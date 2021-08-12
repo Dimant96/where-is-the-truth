@@ -1,18 +1,18 @@
-import {Component, ChangeDetectionStrategy, HostListener} from '@angular/core';
-import {RoundType} from '../../enums/round-type.enum';
-import {map} from 'rxjs/operators';
+import {Component, OnInit, ChangeDetectionStrategy, HostListener} from '@angular/core';
 import {RoundService} from '../../services/round.service';
 import {TeamsService} from '../../../../services/teams.service';
 import {ActivatedRoute} from '@angular/router';
 import {GameNavigationService} from '../../../../services/game-navigation.service';
+import {RoundType} from '../../enums/round-type.enum';
+import {map} from 'rxjs/operators';
 
 @Component({
-    selector: 'question',
-    templateUrl: './question.component.html',
-    styleUrls: ['./question.component.less'],
+    selector: 'app-round',
+    templateUrl: './round.component.html',
+    styleUrls: ['./round.component.less'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class QuestionComponent {
+export class RoundComponent implements OnInit {
     readonly questionRound = RoundType.Question;
     readonly questionWithTimerRound = RoundType.QuestionWithTimer;
     readonly timerRound = RoundType.Timer;
@@ -21,7 +21,19 @@ export class QuestionComponent {
     readonly timer$ = this.roundService.timer$;
     readonly round$ = this.activatedRoute.parent.params.pipe(map(this.roundService.getRound));
     readonly questionNumber$ = this.activatedRoute.params.pipe(map(({question}) => question));
-    readonly isQuestionHide$ = this.roundService.isQuestionHide$;
+
+    // readonly isQuestionHide$ = this.roundService.isQuestionHide$;
+
+    isWaitingResponse = false;
+    isRoundStart = false;
+
+    constructor(
+        private roundService: RoundService,
+        private teamsService: TeamsService,
+        private activatedRoute: ActivatedRoute,
+        private gameNavigationService: GameNavigationService,
+    ) {
+    }
 
     @HostListener('document:keydown.ArrowRight')
     keydownArrowRight() {
@@ -34,23 +46,48 @@ export class QuestionComponent {
         this.gameNavigationService.goToPreview(this.round);
     }
 
-    @HostListener('document:keydown.space')
-    keyDownSpace() {
-        this.roundService.toggleQuestionStatus(this.round);
+    @HostListener('document:keydown.g')
+    keyDownG() {
+        this.teamsService.toggleRespondingTeamMode();
     }
 
-    @HostListener('document:keydown.r')
-    keyDownR() {
-        this.roundService.resetTimer();
+    @HostListener('document:keydown.t')
+    keyDownT() {
+        if (this.teamsService.isTakeTurnsGame) {
+            this.teamsService.toggleRespondingTeam();
+        }
+    }
+
+    @HostListener('document:keydown.space')
+    keyDownSpace() {
+        if (this.isWaitingResponse) {
+            return;
+        }
+
+        this.isWaitingResponse = true;
+
+        if (!this.isRoundStart) {
+            this.isRoundStart = true;
+            return;
+        }
+
+        if (this.roundService.isAllQuestionsResolve(this.round, this.question)) {
+            return;
+        }
+
+        this.gameNavigationService.goToQuestion(this.round, this.question + 1);
     }
 
     @HostListener('document:keydown.1')
     keyDown1() {
-        this.roundService.goToQuestion(this.round, this.question + 1);
+        if (this.roundService.isAllQuestionsResolve(this.round, this.question)) {
+            return;
+        }
+
+        this.isWaitingResponse = false;
 
         if (this.teamsService.isTakeTurnsGame) {
             this.teamsService.bumpScoreReasonsTeam();
-
             return;
         }
 
@@ -59,7 +96,11 @@ export class QuestionComponent {
 
     @HostListener('document:keydown.2')
     keyDown2() {
-        this.roundService.goToQuestion(this.round, this.question + 1);
+        if (this.roundService.isAllQuestionsResolve(this.round, this.question)) {
+            return;
+        }
+
+        this.isWaitingResponse = false;
 
         if (this.teamsService.isTakeTurnsGame) {
             return;
@@ -68,12 +109,7 @@ export class QuestionComponent {
         this.teamsService.bumpScore(1);
     }
 
-    constructor(
-        private roundService: RoundService,
-        private teamsService: TeamsService,
-        private activatedRoute: ActivatedRoute,
-        private gameNavigationService: GameNavigationService,
-    ) {
+    ngOnInit(): void {
     }
 
     get round(): number {

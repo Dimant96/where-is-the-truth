@@ -1,12 +1,12 @@
 import {RouterModule, Routes} from '@angular/router';
 import {PlayComponent} from './play.component';
 import {NgModule} from '@angular/core';
-import {QuestionComponent} from './components/question/question.component';
-import {QuestionModule} from './components/question/question.module';
 import {PreviewComponent} from './components/preview/preview.component';
 import {ResultComponent} from './components/result/result.component';
 import {PreviewModule} from './components/preview/preview.module';
 import {ResultModule} from './components/result/result.module';
+import {RoundModule} from './components/round/round.module';
+import {RoundComponent} from './components/round/round.component';
 
 const routes: Routes = [
     {
@@ -23,7 +23,7 @@ const routes: Routes = [
             },
             {
                 path: ':question',
-                component: QuestionComponent,
+                component: RoundComponent,
             },
             {
                 path: '**',
@@ -38,7 +38,7 @@ const routes: Routes = [
 ];
 
 @NgModule({
-    imports: [QuestionModule, PreviewModule, ResultModule, RouterModule.forChild(routes)],
+    imports: [RoundModule, PreviewModule, ResultModule, RouterModule.forChild(routes)],
     exports: [RouterModule],
 })
 export class PlayRoutingModule {

@@ -1,0 +1,43 @@
+<ng-container *ngIf="(teams$ | async) as teams">
+    <div class="teams__names">
+        <h1
+            *ngFor="let team of teams; let index = index"
+            [class.blur]="isTeamBlur(index)"
+        >
+            {{team.name}}
+        </h1>
+    </div>
+    <div
+        *ngIf="(round$ | async) as round"
+        class="content-wrapper"
+    >
+        <ng-container
+            [ngSwitch]="round.type"
+        >
+            <common-question
+                *ngSwitchCase="questionRound"
+                [round]="round"
+                [questionNumber]="isWaitingResponse ? (questionNumber$ | async) : -1"
+            ></common-question>
+            <question-with-timer
+                *ngSwitchCase="questionWithTimerRound"
+                [round]="round"
+                [questionNumber]="isWaitingResponse ? (questionNumber$ | async) : -1"
+                [timer]="timer$ | async"
+            ></question-with-timer>
+            <timer
+                *ngSwitchCase="timerRound"
+                [round]="round"
+                [timer]="timer$ | async"
+            ></timer>
+        </ng-container>
+    </div>
+    <div class="teams__score">
+        <h2
+            *ngFor="let team of teams; let index = index"
+            [class.blur]="isTeamBlur(index)"
+        >
+            {{team.score}}
+        </h2>
+    </div>
+</ng-container>

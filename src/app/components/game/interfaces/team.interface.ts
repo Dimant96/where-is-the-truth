@@ -1,4 +1,5 @@
 export interface Team {
-    score: number;
     name: string;
+    score: number;
+    winner: number;
 }

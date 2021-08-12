@@ -1,0 +1,46 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 40px;
+
+    background: url("src/assets/background/first-team.jpg") left top no-repeat,
+    url("src/assets/background/second-team.jpg") right top no-repeat;
+    background-size: 50% 100%, 50% 100%;
+}
+.teams {
+    &__names {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        font-size: 33px;
+        color: #fff;
+
+        & > * {
+            margin: 0;
+        }
+    }
+
+    &__score {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        color: #fff;
+        font-size: 56px;
+
+        & > * {
+            margin: 0;
+        }
+    }
+}
+
+.content-wrapper {
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    position: relative;
+}
+
+.blur {
+    color: rgba(255, 255, 255, 0.3)
+}

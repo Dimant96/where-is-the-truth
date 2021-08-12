@@ -18,7 +18,8 @@ export class ResultComponent {
         private activatedRoute: ActivatedRoute,
         private roundService: RoundService,
         private gameNavigationService: GameNavigationService
-    ) {}
+    ) {
+    }
 
     get round(): number {
         return +this.activatedRoute.parent.snapshot.params.round;
@@ -37,5 +38,15 @@ export class ResultComponent {
     @HostListener('document:keydown.ArrowLeft')
     keydownArrowLeft() {
         this.gameNavigationService.goToPreview(this.round);
+    }
+
+    @HostListener('document:keydown.1')
+    keyDown1() {
+        this.teamsService.bumpWinnerTeam(0);
+    }
+
+    @HostListener('document:keydown.2')
+    keyDown2() {
+        this.teamsService.bumpWinnerTeam(1);
     }
 }
