@@ -144,7 +144,10 @@ export class RoundComponent implements OnInit {
         this.teamsService.bumpScore(1);
     }
 
-    ngOnInit(): void {
+    ngOnInit() {
+        if (this.teamsService.isTakeTurnsGame) {
+            this.teamsService.toggleRespondingTeamMode();
+        }
     }
 
     get round(): number {

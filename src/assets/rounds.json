@@ -20,10 +20,10 @@
         "name": "Question",
         "questions": [
             {
-                "text": "Вот и первый вопрос"
+                "image": "https://freesoft.ru/storage/images/news/3/23/2222/2222_text.png"
             },
             {
-                "text": "Вот и 2 вопрос"
+                "image": "assets/questions-mages/second-team.jpg"
             },
             {
                 "text": "Конец"

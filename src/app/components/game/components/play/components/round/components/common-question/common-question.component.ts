@@ -1,4 +1,4 @@
-import {Component, ChangeDetectionStrategy, Input} from '@angular/core';
+import {Component, ChangeDetectionStrategy, Input, HostBinding} from '@angular/core';
 import {Round} from '../../../../interfaces/round.interface';
 
 @Component({
@@ -11,4 +11,9 @@ export class CommonQuestionComponent {
     @Input() round: Round;
     @Input() questionNumber: number;
     @Input() isQuestionHide: boolean;
+
+    @HostBinding('class.img')
+    get isImg(): boolean {
+        return !!this.round.questions[this.questionNumber]?.image;
+    }
 }
