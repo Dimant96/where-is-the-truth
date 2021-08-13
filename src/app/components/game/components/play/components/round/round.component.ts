@@ -4,7 +4,7 @@ import {TeamsService} from '../../../../services/teams.service';
 import {ActivatedRoute} from '@angular/router';
 import {GameNavigationService} from '../../../../services/game-navigation.service';
 import {RoundType} from '../../enums/round-type.enum';
-import {map} from 'rxjs/operators';
+import {map, tap} from 'rxjs/operators';
 import {TimerService} from '../../services/timer.service';
 import {Observable} from 'rxjs';
 import {playAudio} from '../../../../utils/play-audio';
@@ -23,7 +23,16 @@ export class RoundComponent implements OnInit {
     readonly timerRound = RoundType.Timer;
 
     readonly teams$ = this.teamsService.teams$;
-    readonly timer$ = this.timerService.timer$;
+    readonly timer$ = this.timerService.timer$.pipe(
+        tap(timer => {
+            const roundTimer = this.roundService.getRound(this.round).timer;
+            const isTimerEnd = roundTimer ? !(roundTimer - timer) : false;
+
+            if (isTimerEnd) {
+                playAudio(AudioPath.EndTimer);
+            }
+        })
+    );
     readonly questionNumber$ = this.activatedRoute
         .params
         .pipe(map(({question}) => question));
