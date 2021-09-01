@@ -123,6 +123,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "haltura"
+    }
+  },
+  "defaultProject": "haltura",
+  "cli": {
+    "analytics": false
+  }
 }

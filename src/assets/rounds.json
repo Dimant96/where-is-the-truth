@@ -1,38 +1,257 @@
 [
     {
-        "type": "Question with timer",
-        "name": "Question with timer",
-        "timer": 20000,
+        "type": "Question",
+        "name": "Правда/Ложь",
         "questions": [
             {
-                "text": "Вот и первый вопрос с таймером"
+                "text": "Куриц на планете больше чем людей"
             },
             {
-                "text": "Вот и 2 вопрос тоже с таймером"
+                "text": "Население Бангладеш больше населения России"
             },
             {
-                "text": "Конец таймеру"
+                "text": "Законодательство США допускало отправку детей по почте до 1914 года"
+            },
+            {
+                "text": "Английский язык является самым популярным в мире"
+            },
+            {
+                "text": "Ударяясь головой об стену можно сжечь 250 калорий в час"
+            },
+            {
+                "text": "Фраза <Элементарно, Ватсон> ни разу не появлялась в книгах о Шерлоке Холмсе"
+            },
+            {
+                "text": "За жизнь мы проглатываем слюны больше чем воды в Ладыжском озере"
+            },
+            {
+                "text": "Люди высадились на Луну раньше чем изобрели чемодан на колесах"
+            },
+            {
+                "text": "За прыжок с небоскреба в Нью-Йорке грозит смертная казнь"
+            },
+            {
+                "text": "Ни в одном языке мира нет слова для обозначения обратной стороны колена"
             }
         ]
     },
     {
         "type": "Question",
-        "name": "Question",
+        "name": "Отгадай бренд",
         "questions": [
             {
-                "image": "https://freesoft.ru/storage/images/news/3/23/2222/2222_text.png"
+                "image": "assets/questions-images/Image1.JPG"
             },
             {
-                "image": "assets/questions-mages/second-team.jpg"
+                "image": "assets/questions-images/Image2.JPG"
             },
             {
-                "text": "Конец"
+                "image": "assets/questions-images/Image3.JPG"
+            },
+            {
+                "image": "assets/questions-images/Image4.JPG"
+            },
+            {
+                "image": "assets/questions-images/Image5.JPG"
+            },
+            {
+                "image": "assets/questions-images/Image6.JPG"
+            },
+            {
+                "image": "assets/questions-images/Image7.JPG"
+            },
+            {
+                "image": "assets/questions-images/Image8.JPG"
+            },
+            {
+                "image": "assets/questions-images/Image9.JPG"
+            },
+            {
+                "image": "assets/questions-images/Image10.JPG"
+            }
+        ]
+    },
+    {
+        "type": "Question with timer",
+        "name": "Слово наоборот",
+        "timer": 10000,
+        "questions": [
+            {
+                "text": "Чучело"
+            },
+            {
+                "text": "Карандаш"
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            },
+            {
+                "text": ""
+            }
+        ]
+    },
+    {
+        "type": "Question",
+        "name": "Нарисуйка",
+        "questions": [
+            {
+                "text": "Деньги"
+            },
+            {
+                "text": "Крик"
+            },
+            {
+                "text": "Тюрьма"
+            },
+            {
+                "text": "Пистолет"
+            },
+            {
+                "text": "Лупа"
+            },
+            {
+                "text": "Пуля"
+            },
+            {
+                "text": "Блокнот"
+            },
+            {
+                "text": "Телефон"
+            },
+            {
+                "text": "Маска"
+            },
+            {
+                "text": "План"
+            },
+            {
+                "text": "Пароль"
+            },
+            {
+                "text": "Банк"
+            },
+            {
+                "text": "Сейф"
+            },
+            {
+                "text": "Газета"
+            },
+            {
+                "text": "Шляпа"
+            },
+            {
+                "text": "Карта"
+            },
+            {
+                "text": "Фотография"
+            },
+            {
+                "text": "Табурет"
+            },
+            {
+                "text": "Водопад"
+            },
+            {
+                "text": "Штатив"
+            },
+            {
+                "text": "Дверь"
+            },
+            {
+                "text": "Клевер"
+            },
+            {
+                "text": "Кактус"
+            },
+            {
+                "text": "Земля"
+            },
+            {
+                "text": "Язык"
+            },
+            {
+                "text": "Шнурок"
+            },
+            {
+                "text": "Нос"
+            },
+            {
+                "text": "Нож"
+            },
+            {
+                "text": "Зубы"
+            },
+            {
+                "text": "Тарелка"
             }
         ]
     },
     {
         "type": "Timer",
         "name": "Timer",
-        "timer": 20000
+        "timer": 200000
+    },
+    {
+        "type": "Timer",
+        "name": "Timer",
+        "timer": 80000
+    },
+    {
+        "type": "Timer",
+        "name": "Timer",
+        "timer": 300000
+    },
+    {
+        "type": "Timer",
+        "name": "Timer",
+        "timer": 500000
     }
 ]
