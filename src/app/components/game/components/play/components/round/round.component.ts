@@ -70,11 +70,13 @@ export class RoundComponent implements OnInit {
     }
 
     @HostListener('document:keydown.g')
+    @HostListener('document:keydown.п')
     keyDownG() {
         this.teamsService.toggleRespondingTeamMode();
     }
 
     @HostListener('document:keydown.t')
+    @HostListener('document:keydown.е')
     keyDownT() {
         if (this.teamsService.isTakeTurnsGame) {
             this.teamsService.toggleRespondingTeam();
@@ -82,6 +84,7 @@ export class RoundComponent implements OnInit {
     }
 
     @HostListener('document:keydown.r')
+    @HostListener('document:keydown.к')
     keyDownR() {
         this.timerService.stop();
     }
