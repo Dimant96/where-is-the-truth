@@ -1,37 +1,25 @@
-[
+﻿[
     {
         "type": "Question",
         "name": "Правда/Ложь",
         "questions": [
             {
-                "text": "Куриц на планете больше чем людей"
+                "text": "Куриц на планете больше, чем людей"
             },
             {
-                "text": "Население Бангладеш больше населения России"
+                "text": "За жизнь мы проглатываем слюны больше, чем воды в Ладожском озере"
             },
             {
                 "text": "Законодательство США допускало отправку детей по почте до 1914 года"
             },
             {
-                "text": "Английский язык является самым популярным в мире"
-            },
-            {
-                "text": "Ударяясь головой об стену можно сжечь 250 калорий в час"
-            },
-            {
-                "text": "Фраза <Элементарно, Ватсон> ни разу не появлялась в книгах о Шерлоке Холмсе"
-            },
-            {
-                "text": "За жизнь мы проглатываем слюны больше чем воды в Ладыжском озере"
-            },
-            {
-                "text": "Люди высадились на Луну раньше чем изобрели чемодан на колесах"
-            },
-            {
                 "text": "За прыжок с небоскреба в Нью-Йорке грозит смертная казнь"
             },
             {
-                "text": "Ни в одном языке мира нет слова для обозначения обратной стороны колена"
+                "text": "Ударяясь головой об стену, можно сжечь 250 Ккал. в час"
+            },
+            {
+                "text": "Люди высадились на Луну раньше, чем изобрели чемодан на колесах"
             }
         ]
     },
@@ -40,107 +28,77 @@
         "name": "Отгадай бренд",
         "questions": [
             {
-                "image": "assets/questions-images/Image1.JPG"
+                "image": "assets/questions-images/Image1.jpg"
             },
             {
-                "image": "assets/questions-images/Image2.JPG"
+                "image": "assets/questions-images/Image12.jpg"
             },
             {
-                "image": "assets/questions-images/Image3.JPG"
+                "image": "assets/questions-images/Image2.jpg"
+            },
+            {
+                "image": "assets/questions-images/Image22.jpg"
+            },
+            {
+                "image": "assets/questions-images/Image3.jpg"
+            },
+            {
+                "image": "assets/questions-images/Image32.jpg"
             },
             {
                 "image": "assets/questions-images/Image4.JPG"
             },
             {
+                "image": "assets/questions-images/Image42.jpg"
+            },
+            {
                 "image": "assets/questions-images/Image5.JPG"
+            },
+            {
+                "image": "assets/questions-images/Image52.jpg"
             },
             {
                 "image": "assets/questions-images/Image6.JPG"
             },
             {
+                "image": "assets/questions-images/Image62.jpg"
+            },
+            {
                 "image": "assets/questions-images/Image7.JPG"
+            },
+            {
+                "image": "assets/questions-images/Image72.jpg"
             },
             {
                 "image": "assets/questions-images/Image8.JPG"
             },
             {
-                "image": "assets/questions-images/Image9.JPG"
+                "image": "assets/questions-images/Image82.jpg"
             },
             {
-                "image": "assets/questions-images/Image10.JPG"
+                "image": "assets/questions-images/Image9.jpg"
+            },
+            {
+                "image": "assets/questions-images/Image92.jpg"
+            },
+            {
+                "image": "assets/questions-images/Image10.jpg"
+            },
+            {
+                "image": "assets/questions-images/Image102.jpg"
+            },
+            {
+                "image": "assets/questions-images/Image11.jpg"
+            },
+            {
+                "image": "assets/questions-images/Image112.jpg"
             }
         ]
     },
     {
         "type": "Question with timer",
-        "name": "Слово наоборот",
-        "timer": 10000,
-        "questions": [
-            {
-                "text": "Чучело"
-            },
-            {
-                "text": "Карандаш"
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            },
-            {
-                "text": ""
-            }
-        ]
-    },
-    {
-        "type": "Question",
         "name": "Нарисуйка",
+        "timer": 120000,
         "questions": [
             {
                 "text": "Деньги"
@@ -158,10 +116,10 @@
                 "text": "Лупа"
             },
             {
-                "text": "Пуля"
+                "text": "Блокнот"
             },
             {
-                "text": "Блокнот"
+                "text": "Руль"
             },
             {
                 "text": "Телефон"
@@ -179,10 +137,10 @@
                 "text": "Банк"
             },
             {
-                "text": "Сейф"
+                "text": "Тапок"
             },
             {
-                "text": "Газета"
+                "text": "Ручка"
             },
             {
                 "text": "Шляпа"
@@ -191,7 +149,7 @@
                 "text": "Карта"
             },
             {
-                "text": "Фотография"
+                "text": "Ключ"
             },
             {
                 "text": "Табурет"
@@ -206,52 +164,184 @@
                 "text": "Дверь"
             },
             {
-                "text": "Клевер"
+                "text": "Наушники"
             },
             {
                 "text": "Кактус"
             },
             {
-                "text": "Земля"
+                "text": "Болт"
             },
             {
-                "text": "Язык"
+                "text": "Микрофон"
             },
             {
-                "text": "Шнурок"
+                "text": "Расческа"
             },
             {
-                "text": "Нос"
+                "text": "Валенки"
             },
             {
-                "text": "Нож"
+                "text": "Мизинец"
             },
             {
                 "text": "Зубы"
             },
             {
                 "text": "Тарелка"
+            },
+            {
+                "text": "Пушка"
+            },
+            {
+                "text": "Корона"
+            },
+            {
+                "text": "Снежинка"
+            },
+            {
+                "text": "Блин"
+            }
+        ]
+    },
+    {
+        "type": "Question",
+        "name": "Шака-Шалама",
+        "questions": [
+            {
+                "text": "Кеджи Нач"
+            },
+            {
+                "text": "Имт Кку"
+            },
+            {
+                "text": "Сирала Везуега"
+            },
+            {
+                "text": "Алкони Слета"
+            },
+            {
+                "text": "Тикани Гурдажид"
+            },
+            {
+                "text": "Дрейна Новорми"
+            },
+            {
+                "text": "Енела Шлыеваам"
+            },
+            {
+                "text": "Нетибедк Четкамбэбр"
+            },
+            {
+                "text": "Яистасана Вовочкало"
+            },
+            {
+                "text": "Нардоль Гравешенгерц"
+            }
+        ]
+    },
+    {
+        "type": "Question",
+        "name": "Музыкалка",
+        "questions": [
+            {
+                "text": "1"
+            },
+            {
+                "text": "2"
+            },
+            {
+                "text": "3"
+            },
+            {
+                "text": "4"
+            },
+            {
+                "text": "5"
+            },
+            {
+                "text": "6"
+            },
+            {
+                "text": "7"
+            },
+            {
+                "text": "8"
+            },
+            {
+                "text": "9"
+            },
+            {
+                "text": "10"
+            }
+        ]
+    },
+    {
+        "type": "Question with timer",
+        "name": "Время выпЕвать",
+        "timer": 10000,
+        "questions": [
+            {
+                "text": "Любовь"
+            },
+            {
+                "text": "Девочка"
+            },
+            {
+                "text": "Ты"
+            },
+            {
+                "text": "Солнце"
+            },
+            {
+                "text": "<Имя>"
+            },
+            {
+                "text": "Море"
+            },
+            {
+                "text": "Друг"
+            },
+            {
+                "text": "Сердце"
+            },
+            {
+                "text": "Туман"
+            },
+            {
+                "text": "Детство"
+            },
+            {
+                "text": "Ночь"
+            },
+            {
+                "text": "Мир"
+            },
+            {
+                "text": "Птица"
+            },
+            {
+                "text": "Небо"
+            },
+            {
+                "text": "Дом"
+            },
+            {
+                "text": "Кровь"
+            },
+            {
+                "text": "Душа"
             }
         ]
     },
     {
         "type": "Timer",
-        "name": "Timer",
-        "timer": 200000
+        "name": "Натяни",
+        "timer": 180000
     },
     {
         "type": "Timer",
-        "name": "Timer",
-        "timer": 80000
-    },
-    {
-        "type": "Timer",
-        "name": "Timer",
+        "name": "Ваша версия",
         "timer": 300000
-    },
-    {
-        "type": "Timer",
-        "name": "Timer",
-        "timer": 500000
     }
 ]
