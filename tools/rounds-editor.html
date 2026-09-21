@@ -412,6 +412,14 @@ async function loadFromRoot(rootHandle) {
 // ---------- Saving ----------
 async function saveRounds() {
   if (!state.roundsHandle) return;
+  // Any image picked but not yet explicitly confirmed (via "Добавить картинку") must still
+  // end up in the saved file — otherwise a forgotten confirm click silently loses the pick.
+  if (pendingImageFiles.size > 0) {
+    setStatus('Сохранение картинок…');
+    for (const q of Array.from(pendingImageFiles.keys())) {
+      await confirmPendingImage(q);
+    }
+  }
   setStatus('Сохранение…');
   try {
     const writable = await state.roundsHandle.createWritable();
@@ -691,8 +699,9 @@ let dragQuestionFrom = null;
 // Questions are still text/image in memory while the user is mid-pick, before rounds.json
 // is written — tracked here rather than on the question object so a cancelled pick can't
 // leave a question with neither text nor image saved to disk.
-const imageMode = new WeakSet();
-const pendingImageFiles = new WeakMap();
+// Regular Set/Map (not Weak) so saveRounds() can iterate pending picks before writing.
+const imageMode = new Set();
+const pendingImageFiles = new Map();
 
 function renderQuestionRow(round, qIndex) {
   const q = round.questions[qIndex];
@@ -761,6 +770,8 @@ function renderQuestionRow(round, qIndex) {
   removeBtn.textContent = '✕';
   removeBtn.title = 'Удалить вопрос';
   removeBtn.onclick = () => {
+    imageMode.delete(q);
+    pendingImageFiles.delete(q);
     round.questions.splice(qIndex, 1);
     markDirty();
     render();
