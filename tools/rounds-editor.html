@@ -688,10 +688,15 @@ function renderNameOnly(index, value) {
 }
 
 let dragQuestionFrom = null;
+// Questions are still text/image in memory while the user is mid-pick, before rounds.json
+// is written — tracked here rather than on the question object so a cancelled pick can't
+// leave a question with neither text nor image saved to disk.
+const imageMode = new WeakSet();
+const pendingImageFiles = new WeakMap();
 
 function renderQuestionRow(round, qIndex) {
   const q = round.questions[qIndex];
-  const isImage = !!q.image;
+  const isImage = !!q.image || imageMode.has(q);
 
   const row = document.createElement('div');
   row.className = 'question-row';
@@ -716,18 +721,22 @@ function renderQuestionRow(round, qIndex) {
   textBtn.textContent = 'Текст';
   textBtn.className = isImage ? '' : 'active';
   textBtn.onclick = () => {
-    delete q.image;
+    imageMode.delete(q);
+    pendingImageFiles.delete(q);
+    if (q.image) {
+      delete q.image;
+      markDirty();
+    }
     q.text = q.text || '';
-    markDirty();
     render();
   };
   const imgBtn = document.createElement('button');
   imgBtn.textContent = 'Картинка';
   imgBtn.className = isImage ? 'active' : '';
   imgBtn.onclick = () => {
-    delete q.text;
-    markDirty();
+    imageMode.add(q);
     render();
+    triggerFilePick(q);
   };
   toggle.appendChild(textBtn);
   toggle.appendChild(imgBtn);
@@ -784,6 +793,39 @@ function renderQuestionRow(round, qIndex) {
 
 function renderImageEditor(q) {
   const wrap = document.createElement('div');
+  const pendingFile = pendingImageFiles.get(q);
+
+  // A freshly picked file waiting for explicit confirmation — nothing is written to
+  // disk and q.image isn't set until the user clicks "Добавить картинку".
+  if (pendingFile) {
+    const preview = document.createElement('div');
+    preview.className = 'image-preview';
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(pendingFile);
+    preview.appendChild(img);
+    const path = document.createElement('div');
+    path.className = 'path';
+    path.textContent = pendingFile.name + ' — ещё не сохранено';
+    preview.appendChild(path);
+    wrap.appendChild(preview);
+
+    const actions = document.createElement('div');
+    actions.style.display = 'flex';
+    actions.style.gap = '8px';
+    actions.style.marginTop = '8px';
+    const confirmBtn = document.createElement('button');
+    confirmBtn.className = 'primary small-btn';
+    confirmBtn.textContent = 'Добавить картинку';
+    confirmBtn.onclick = () => confirmPendingImage(q);
+    actions.appendChild(confirmBtn);
+    const changeBtn = document.createElement('button');
+    changeBtn.className = 'small-btn';
+    changeBtn.textContent = 'Выбрать другой файл';
+    changeBtn.onclick = () => triggerFilePick(q);
+    actions.appendChild(changeBtn);
+    wrap.appendChild(actions);
+    return wrap;
+  }
 
   if (q.image) {
     const preview = document.createElement('div');
@@ -810,12 +852,12 @@ function renderImageEditor(q) {
   drop.onclick = () => triggerFilePick(q);
   drop.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); drop.classList.add('drag-over'); });
   drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-  drop.addEventListener('drop', async (e) => {
+  drop.addEventListener('drop', (e) => {
     e.preventDefault();
     e.stopPropagation();
     drop.classList.remove('drag-over');
     const file = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (file) await assignImage(q, file);
+    if (file) setPendingImage(q, file);
   });
   wrap.appendChild(drop);
   return wrap;
@@ -825,19 +867,29 @@ function triggerFilePick(q) {
   const input = document.createElement('input');
   input.type = 'file';
   input.accept = 'image/*';
-  input.onchange = async () => {
+  input.onchange = () => {
     const file = input.files[0];
-    if (file) await assignImage(q, file);
+    if (file) setPendingImage(q, file);
   };
   input.click();
 }
 
-async function assignImage(q, file) {
+function setPendingImage(q, file) {
+  imageMode.add(q);
+  pendingImageFiles.set(q, file);
+  render();
+}
+
+async function confirmPendingImage(q) {
+  const file = pendingImageFiles.get(q);
+  if (!file) return;
   setStatus('Копирование картинки…');
   try {
     const finalName = await writeImageFile(file);
     q.image = 'assets/questions-images/' + finalName;
     delete q.text;
+    pendingImageFiles.delete(q);
+    imageMode.delete(q);
     markDirty();
     render();
   } catch (e) {
