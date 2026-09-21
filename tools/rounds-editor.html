@@ -197,7 +197,76 @@
     color: var(--muted);
     cursor: pointer;
   }
-  .image-drop.drag-over { border-color: var(--accent); background: #eef2ff; }
+  .image-drop:hover { border-color: var(--accent); background: #eef2ff; }
+  .gallery-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 18, 30, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+  }
+  .gallery-modal {
+    background: var(--card-bg);
+    border-radius: 14px;
+    width: min(640px, 100%);
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .gallery-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  .gallery-grid {
+    padding: 16px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    gap: 12px;
+  }
+  .gallery-item {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    padding: 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    text-align: center;
+    overflow: hidden;
+  }
+  .gallery-item:hover { border-color: var(--accent); }
+  .gallery-item img {
+    width: 100%;
+    height: 70px;
+    object-fit: cover;
+    border-radius: 6px;
+    background: var(--bg);
+  }
+  .gallery-item span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 100%;
+  }
+  .gallery-empty {
+    color: var(--muted);
+    font-size: 14px;
+    padding: 20px;
+    text-align: center;
+  }
   .image-preview {
     display: flex;
     align-items: center;
@@ -412,14 +481,6 @@ async function loadFromRoot(rootHandle) {
 // ---------- Saving ----------
 async function saveRounds() {
   if (!state.roundsHandle) return;
-  // Any image picked but not yet explicitly confirmed (via "Добавить картинку") must still
-  // end up in the saved file — otherwise a forgotten confirm click silently loses the pick.
-  if (pendingImageFiles.size > 0) {
-    setStatus('Сохранение картинок…');
-    for (const q of Array.from(pendingImageFiles.keys())) {
-      await confirmPendingImage(q);
-    }
-  }
   setStatus('Сохранение…');
   try {
     const writable = await state.roundsHandle.createWritable();
@@ -429,32 +490,6 @@ async function saveRounds() {
   } catch (e) {
     setStatus('Ошибка сохранения: ' + e.message, 'dirty');
   }
-}
-
-// ---------- Image files ----------
-async function writeImageFile(file) {
-  const dir = state.imagesHandle;
-  let name = file.name;
-  const dot = name.lastIndexOf('.');
-  const base = dot > -1 ? name.slice(0, dot) : name;
-  const ext = dot > -1 ? name.slice(dot) : '';
-  let exists = await dir.getFileHandle(name).then(() => true).catch(() => false);
-  if (exists) {
-    let i = 1;
-    let candidate;
-    do {
-      candidate = base + '-' + i + ext;
-      exists = await dir.getFileHandle(candidate).then(() => true).catch(() => false);
-      i++;
-    } while (exists);
-    name = candidate;
-    setStatus('Файл с таким именем уже был — сохранено как "' + name + '"', 'dirty');
-  }
-  const fh = await dir.getFileHandle(name, { create: true });
-  const writable = await fh.createWritable();
-  await writable.write(file);
-  await writable.close();
-  return name;
 }
 
 // ---------- Round / question data helpers ----------
@@ -696,16 +731,10 @@ function renderNameOnly(index, value) {
 }
 
 let dragQuestionFrom = null;
-// Questions are still text/image in memory while the user is mid-pick, before rounds.json
-// is written — tracked here rather than on the question object so a cancelled pick can't
-// leave a question with neither text nor image saved to disk.
-// Regular Set/Map (not Weak) so saveRounds() can iterate pending picks before writing.
-const imageMode = new Set();
-const pendingImageFiles = new Map();
 
 function renderQuestionRow(round, qIndex) {
   const q = round.questions[qIndex];
-  const isImage = !!q.image || imageMode.has(q);
+  const isImage = !!q.image;
 
   const row = document.createElement('div');
   row.className = 'question-row';
@@ -730,8 +759,6 @@ function renderQuestionRow(round, qIndex) {
   textBtn.textContent = 'Текст';
   textBtn.className = isImage ? '' : 'active';
   textBtn.onclick = () => {
-    imageMode.delete(q);
-    pendingImageFiles.delete(q);
     if (q.image) {
       delete q.image;
       markDirty();
@@ -742,11 +769,7 @@ function renderQuestionRow(round, qIndex) {
   const imgBtn = document.createElement('button');
   imgBtn.textContent = 'Картинка';
   imgBtn.className = isImage ? 'active' : '';
-  imgBtn.onclick = () => {
-    imageMode.add(q);
-    render();
-    triggerFilePick(q);
-  };
+  imgBtn.onclick = () => pickImageForQuestion(q);
   toggle.appendChild(textBtn);
   toggle.appendChild(imgBtn);
   main.appendChild(toggle);
@@ -770,8 +793,6 @@ function renderQuestionRow(round, qIndex) {
   removeBtn.textContent = '✕';
   removeBtn.title = 'Удалить вопрос';
   removeBtn.onclick = () => {
-    imageMode.delete(q);
-    pendingImageFiles.delete(q);
     round.questions.splice(qIndex, 1);
     markDirty();
     render();
@@ -804,39 +825,6 @@ function renderQuestionRow(round, qIndex) {
 
 function renderImageEditor(q) {
   const wrap = document.createElement('div');
-  const pendingFile = pendingImageFiles.get(q);
-
-  // A freshly picked file waiting for explicit confirmation — nothing is written to
-  // disk and q.image isn't set until the user clicks "Добавить картинку".
-  if (pendingFile) {
-    const preview = document.createElement('div');
-    preview.className = 'image-preview';
-    const img = document.createElement('img');
-    img.src = URL.createObjectURL(pendingFile);
-    preview.appendChild(img);
-    const path = document.createElement('div');
-    path.className = 'path';
-    path.textContent = pendingFile.name + ' — ещё не сохранено';
-    preview.appendChild(path);
-    wrap.appendChild(preview);
-
-    const actions = document.createElement('div');
-    actions.style.display = 'flex';
-    actions.style.gap = '8px';
-    actions.style.marginTop = '8px';
-    const confirmBtn = document.createElement('button');
-    confirmBtn.className = 'primary small-btn';
-    confirmBtn.textContent = 'Добавить картинку';
-    confirmBtn.onclick = () => confirmPendingImage(q);
-    actions.appendChild(confirmBtn);
-    const changeBtn = document.createElement('button');
-    changeBtn.className = 'small-btn';
-    changeBtn.textContent = 'Выбрать другой файл';
-    changeBtn.onclick = () => triggerFilePick(q);
-    actions.appendChild(changeBtn);
-    wrap.appendChild(actions);
-    return wrap;
-  }
 
   if (q.image) {
     const preview = document.createElement('div');
@@ -851,7 +839,7 @@ function renderImageEditor(q) {
     const changeBtn = document.createElement('button');
     changeBtn.className = 'small-btn';
     changeBtn.textContent = 'Заменить…';
-    changeBtn.onclick = () => triggerFilePick(q);
+    changeBtn.onclick = () => pickImageForQuestion(q);
     preview.appendChild(changeBtn);
     wrap.appendChild(preview);
     return wrap;
@@ -859,52 +847,80 @@ function renderImageEditor(q) {
 
   const drop = document.createElement('div');
   drop.className = 'image-drop';
-  drop.textContent = 'Перетащите картинку сюда или нажмите, чтобы выбрать файл';
-  drop.onclick = () => triggerFilePick(q);
-  drop.addEventListener('dragover', (e) => { e.preventDefault(); e.stopPropagation(); drop.classList.add('drag-over'); });
-  drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
-  drop.addEventListener('drop', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    drop.classList.remove('drag-over');
-    const file = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (file) setPendingImage(q, file);
-  });
+  drop.textContent = 'Нажмите, чтобы выбрать картинку из папки questions-images';
+  drop.onclick = () => pickImageForQuestion(q);
   wrap.appendChild(drop);
   return wrap;
 }
 
-function triggerFilePick(q) {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = 'image/*';
-  input.onchange = () => {
-    const file = input.files[0];
-    if (file) setPendingImage(q, file);
-  };
-  input.click();
-}
-
-function setPendingImage(q, file) {
-  imageMode.add(q);
-  pendingImageFiles.set(q, file);
-  render();
-}
-
-async function confirmPendingImage(q) {
-  const file = pendingImageFiles.get(q);
-  if (!file) return;
-  setStatus('Копирование картинки…');
-  try {
-    const finalName = await writeImageFile(file);
-    q.image = 'assets/questions-images/' + finalName;
+function pickImageForQuestion(q) {
+  openImageGallery((name) => {
+    q.image = 'assets/questions-images/' + name;
     delete q.text;
-    pendingImageFiles.delete(q);
-    imageMode.delete(q);
     markDirty();
     render();
-  } catch (e) {
-    setStatus('Не удалось сохранить картинку: ' + e.message, 'dirty');
+  });
+}
+
+// ---------- Image gallery (choose from files already in questions-images/) ----------
+async function openImageGallery(onSelect) {
+  const overlay = document.createElement('div');
+  overlay.className = 'gallery-overlay';
+  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+
+  const modal = document.createElement('div');
+  modal.className = 'gallery-modal';
+
+  const header = document.createElement('div');
+  header.className = 'gallery-header';
+  const title = document.createElement('span');
+  title.textContent = 'Выберите картинку из questions-images';
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'small-btn';
+  closeBtn.textContent = 'Закрыть';
+  closeBtn.onclick = () => overlay.remove();
+  header.appendChild(title);
+  header.appendChild(closeBtn);
+  modal.appendChild(header);
+
+  const grid = document.createElement('div');
+  grid.className = 'gallery-grid';
+  grid.textContent = 'Загрузка…';
+  modal.appendChild(grid);
+
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+
+  const items = [];
+  for await (const [name, handle] of state.imagesHandle.entries()) {
+    if (handle.kind === 'file' && /\.(jpe?g|png|gif|webp)$/i.test(name)) {
+      items.push({ name, handle });
+    }
+  }
+  items.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+
+  grid.textContent = '';
+  if (items.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'gallery-empty';
+    empty.textContent = 'В папке questions-images пока нет картинок. Добавьте файлы в неё и откройте выбор картинки снова.';
+    grid.appendChild(empty);
+    return;
+  }
+  for (const item of items) {
+    const thumb = document.createElement('button');
+    thumb.className = 'gallery-item';
+    const img = document.createElement('img');
+    item.handle.getFile().then((f) => { img.src = URL.createObjectURL(f); });
+    thumb.appendChild(img);
+    const label = document.createElement('span');
+    label.textContent = item.name;
+    thumb.appendChild(label);
+    thumb.onclick = () => {
+      onSelect(item.name);
+      overlay.remove();
+    };
+    grid.appendChild(thumb);
   }
 }
 
