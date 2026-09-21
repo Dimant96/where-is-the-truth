@@ -198,77 +198,6 @@
     cursor: pointer;
   }
   .image-drop:hover { border-color: var(--accent); background: #eef2ff; }
-  .gallery-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 18, 30, 0.45);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 100;
-    padding: 24px;
-  }
-  .gallery-modal {
-    background: var(--card-bg);
-    border-radius: 14px;
-    width: min(640px, 100%);
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .gallery-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    font-weight: 600;
-  }
-  .gallery-grid {
-    padding: 16px;
-    overflow-y: auto;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-    gap: 12px;
-  }
-  .gallery-item {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: #fff;
-    padding: 6px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    font-size: 11px;
-    color: var(--muted);
-    text-align: center;
-    overflow: hidden;
-  }
-  .gallery-item:hover { border-color: var(--accent); }
-  .gallery-item img {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    object-fit: contain;
-    border-radius: 6px;
-    background:
-      linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%) 0 0/16px 16px,
-      linear-gradient(45deg, #eee 25%, #fff 25%, #fff 75%, #eee 75%) 8px 8px/16px 16px;
-  }
-  .gallery-item span {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    width: 100%;
-  }
-  .gallery-empty {
-    color: var(--muted);
-    font-size: 14px;
-    padding: 20px;
-    text-align: center;
-  }
   .image-preview {
     display: flex;
     align-items: center;
@@ -316,7 +245,7 @@
 </head>
 <body>
 <header>
-  <h1>Редактор этапов <small style="font-size:11px;color:#9ca3af;font-weight:400">build 6</small></h1>
+  <h1>Редактор этапов <small style="font-size:11px;color:#9ca3af;font-weight:400">build 7</small></h1>
   <button id="btnOpen">Открыть папку проекта…</button>
   <button id="btnReopen" style="display:none">Открыть ту же папку снова</button>
   <button id="btnSave" class="primary" disabled>Сохранить</button>
@@ -850,81 +779,41 @@ function renderImageEditor(q) {
 
   const drop = document.createElement('div');
   drop.className = 'image-drop';
-  drop.textContent = 'Нажмите, чтобы выбрать картинку из папки questions-images';
+  drop.textContent = 'Нажмите, чтобы выбрать картинку (откроется папка questions-images)';
   drop.onclick = () => pickImageForQuestion(q);
   wrap.appendChild(drop);
   return wrap;
 }
 
-function pickImageForQuestion(q) {
-  openImageGallery((name) => {
-    q.image = 'assets/questions-images/' + name;
-    delete q.text;
-    markDirty();
-    render();
-  });
-}
-
-// ---------- Image gallery (choose from files already in questions-images/) ----------
-async function openImageGallery(onSelect) {
-  const overlay = document.createElement('div');
-  overlay.className = 'gallery-overlay';
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
-
-  const modal = document.createElement('div');
-  modal.className = 'gallery-modal';
-
-  const header = document.createElement('div');
-  header.className = 'gallery-header';
-  const title = document.createElement('span');
-  title.textContent = 'Выберите картинку из questions-images';
-  const closeBtn = document.createElement('button');
-  closeBtn.className = 'small-btn';
-  closeBtn.textContent = 'Закрыть';
-  closeBtn.onclick = () => overlay.remove();
-  header.appendChild(title);
-  header.appendChild(closeBtn);
-  modal.appendChild(header);
-
-  const grid = document.createElement('div');
-  grid.className = 'gallery-grid';
-  grid.textContent = 'Загрузка…';
-  modal.appendChild(grid);
-
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
-
-  const items = [];
-  for await (const [name, handle] of state.imagesHandle.entries()) {
-    if (handle.kind === 'file' && /\.(jpe?g|png|gif|webp)$/i.test(name)) {
-      items.push({ name, handle });
-    }
-  }
-  items.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
-
-  grid.textContent = '';
-  if (items.length === 0) {
-    const empty = document.createElement('div');
-    empty.className = 'gallery-empty';
-    empty.textContent = 'В папке questions-images пока нет картинок. Добавьте файлы в неё и откройте выбор картинки снова.';
-    grid.appendChild(empty);
+// Opens the OS's own "Open file" dialog (starting in questions-images/) so picking and
+// previewing images relies on Windows' own thumbnails instead of a custom in-page gallery.
+// The picked file is never copied — only its name is stored, so it must already live in
+// questions-images/ for the game to find it.
+async function pickImageForQuestion(q) {
+  if (!window.showOpenFilePicker) {
+    setStatus('Этот браузер не поддерживает выбор файла таким способом.', 'dirty');
     return;
   }
-  for (const item of items) {
-    const thumb = document.createElement('button');
-    thumb.className = 'gallery-item';
-    const img = document.createElement('img');
-    item.handle.getFile().then((f) => { img.src = URL.createObjectURL(f); });
-    thumb.appendChild(img);
-    const label = document.createElement('span');
-    label.textContent = item.name;
-    thumb.appendChild(label);
-    thumb.onclick = () => {
-      onSelect(item.name);
-      overlay.remove();
-    };
-    grid.appendChild(thumb);
+  let handles;
+  try {
+    handles = await window.showOpenFilePicker({
+      id: 'questions-images',
+      startIn: state.imagesHandle,
+      multiple: false,
+      excludeAcceptAllOption: false,
+      types: [{
+        description: 'Картинки',
+        accept: { 'image/*': ['.jpg', '.jpeg', '.png', '.gif', '.webp'] },
+      }],
+    });
+  } catch (e) {
+    return; // user cancelled the dialog
   }
+  const picked = handles[0];
+  q.image = 'assets/questions-images/' + picked.name;
+  delete q.text;
+  markDirty();
+  render();
 }
 
 function loadImagePreview(relPath, imgEl) {
