@@ -68,10 +68,29 @@
   }
   #status.dirty { color: #b45309; }
   #status.saved { color: var(--success); }
-  main {
-    max-width: 760px;
+  .layout {
+    display: flex;
+    align-items: flex-start;
+    gap: 24px;
+    max-width: 1080px;
     margin: 24px auto 80px;
     padding: 0 16px;
+  }
+  .sidebar {
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 72px;
+  }
+  .sidebar:has(#scenariosPanel:empty) { display: none; }
+  @media (max-width: 860px) {
+    .layout { flex-direction: column; }
+    .sidebar { width: 100%; position: static; }
+  }
+  main {
+    flex: 1;
+    min-width: 0;
+    max-width: 760px;
   }
   .hint {
     background: #eef2ff;
@@ -81,11 +100,6 @@
     font-size: 14px;
     line-height: 1.5;
     margin-bottom: 20px;
-  }
-  .scenarios-panel {
-    max-width: 760px;
-    margin: 24px auto 0;
-    padding: 0 16px;
   }
   .scenarios-panel:empty { display: none; }
   .scenarios-box {
@@ -291,19 +305,23 @@
 </head>
 <body>
 <header>
-  <h1>Редактор этапов <small style="font-size:11px;color:#9ca3af;font-weight:400">build 8</small></h1>
+  <h1>Редактор этапов <small style="font-size:11px;color:#9ca3af;font-weight:400">build 9</small></h1>
   <button id="btnOpen">Открыть папку проекта…</button>
   <button id="btnReopen" style="display:none">Открыть ту же папку снова</button>
   <button id="btnSave" class="primary" disabled>Сохранить</button>
   <span id="status"></span>
 </header>
-<div id="scenariosPanel" class="scenarios-panel"></div>
-<main id="app">
-  <div class="hint">
-    Нажмите «Открыть папку проекта» и выберите папку <b>where-is-the-truth</b> на своём компьютере.
-    Работает только в <b>Chrome</b> или <b>Edge</b>.
-  </div>
-</main>
+<div class="layout">
+  <aside class="sidebar">
+    <div id="scenariosPanel" class="scenarios-panel"></div>
+  </aside>
+  <main id="app">
+    <div class="hint">
+      Нажмите «Открыть папку проекта» и выберите папку <b>where-is-the-truth</b> на своём компьютере.
+      Работает только в <b>Chrome</b> или <b>Edge</b>.
+    </div>
+  </main>
+</div>
 
 <script>
 'use strict';
