@@ -82,6 +82,52 @@
     line-height: 1.5;
     margin-bottom: 20px;
   }
+  .scenarios-panel {
+    max-width: 760px;
+    margin: 24px auto 0;
+    padding: 0 16px;
+  }
+  .scenarios-panel:empty { display: none; }
+  .scenarios-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .scenarios-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    font-weight: 600;
+  }
+  .scenarios-list {
+    display: flex;
+    flex-direction: column;
+  }
+  .scenario-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .scenario-row:first-child { border-top: none; }
+  .scenario-row.drag-over { border-top-color: var(--accent); }
+  .scenario-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .scenarios-empty {
+    padding: 16px 14px;
+    color: var(--muted);
+    font-size: 13px;
+  }
   .error {
     background: var(--danger-bg);
     border: 1px solid #fecaca;
@@ -245,12 +291,13 @@
 </head>
 <body>
 <header>
-  <h1>Редактор этапов <small style="font-size:11px;color:#9ca3af;font-weight:400">build 7</small></h1>
+  <h1>Редактор этапов <small style="font-size:11px;color:#9ca3af;font-weight:400">build 8</small></h1>
   <button id="btnOpen">Открыть папку проекта…</button>
   <button id="btnReopen" style="display:none">Открыть ту же папку снова</button>
   <button id="btnSave" class="primary" disabled>Сохранить</button>
   <span id="status"></span>
 </header>
+<div id="scenariosPanel" class="scenarios-panel"></div>
 <main id="app">
   <div class="hint">
     Нажмите «Открыть папку проекта» и выберите папку <b>where-is-the-truth</b> на своём компьютере.
@@ -275,9 +322,12 @@ const state = {
   expanded: new Set(),
   dirty: false,
   dragRoundFrom: null,
+  scenariosHandle: null,
+  scenarios: [], // ordered list of scenario names (without .json)
 };
 
 const app = document.getElementById('app');
+const scenariosPanel = document.getElementById('scenariosPanel');
 const statusEl = document.getElementById('status');
 const btnOpen = document.getElementById('btnOpen');
 const btnReopen = document.getElementById('btnReopen');
@@ -383,6 +433,7 @@ async function loadFromRoot(rootHandle) {
     const assetsHandle = await srcHandle.getDirectoryHandle('assets');
     const roundsHandle = await assetsHandle.getFileHandle('rounds.json');
     const imagesHandle = await assetsHandle.getDirectoryHandle('questions-images');
+    const scenariosHandle = await rootHandle.getDirectoryHandle('scenarios', { create: true });
     const file = await roundsHandle.getFile();
     const text = await file.text();
     let rounds;
@@ -395,12 +446,15 @@ async function loadFromRoot(rootHandle) {
     state.rootHandle = rootHandle;
     state.roundsHandle = roundsHandle;
     state.imagesHandle = imagesHandle;
+    state.scenariosHandle = scenariosHandle;
     state.rounds = rounds;
     state.expanded = new Set();
     state.dirty = false;
     btnSave.disabled = true;
     setStatus('Открыто: ' + rootHandle.name);
     render();
+    await loadScenarioList();
+    renderScenarios();
   } catch (e) {
     showError(
       'В выбранной папке не найден src/assets/rounds.json.\n' +
@@ -422,6 +476,192 @@ async function saveRounds() {
   } catch (e) {
     setStatus('Ошибка сохранения: ' + e.message, 'dirty');
   }
+}
+
+// ---------- Scenarios (saved sets of rounds, stored as scenarios/<name>.json) ----------
+async function loadScenarioList() {
+  const dir = state.scenariosHandle;
+  const onDisk = new Set();
+  for await (const [name, handle] of dir.entries()) {
+    if (handle.kind === 'file' && name.endsWith('.json') && name !== '_order.json') {
+      onDisk.add(name.slice(0, -5));
+    }
+  }
+  let order = [];
+  try {
+    const orderHandle = await dir.getFileHandle('_order.json');
+    const file = await orderHandle.getFile();
+    const parsed = JSON.parse(await file.text());
+    if (Array.isArray(parsed)) order = parsed;
+  } catch (e) {
+    order = [];
+  }
+  const ordered = order.filter((name) => onDisk.has(name));
+  for (const name of onDisk) {
+    if (!ordered.includes(name)) ordered.push(name);
+  }
+  state.scenarios = ordered;
+  if (JSON.stringify(ordered) !== JSON.stringify(order)) {
+    await saveScenarioOrder();
+  }
+}
+
+async function saveScenarioOrder() {
+  const orderHandle = await state.scenariosHandle.getFileHandle('_order.json', { create: true });
+  const writable = await orderHandle.createWritable();
+  await writable.write(JSON.stringify(state.scenarios, null, 2) + '\n');
+  await writable.close();
+}
+
+function sanitizeScenarioName(raw) {
+  return raw.trim().replace(/[\\/:*?"<>|]/g, '').slice(0, 80);
+}
+
+async function saveCurrentAsScenario() {
+  if (!state.scenariosHandle) return;
+  const raw = prompt('Название сценария:');
+  if (raw === null) return;
+  const name = sanitizeScenarioName(raw);
+  if (!name) {
+    setStatus('Пустое или недопустимое название сценария', 'dirty');
+    return;
+  }
+  const exists = state.scenarios.includes(name);
+  if (exists && !confirm('Сценарий «' + name + '» уже существует. Перезаписать его текущим набором этапов?')) {
+    return;
+  }
+  try {
+    const fh = await state.scenariosHandle.getFileHandle(name + '.json', { create: true });
+    const writable = await fh.createWritable();
+    await writable.write(JSON.stringify(state.rounds, null, 2) + '\n');
+    await writable.close();
+    if (!exists) {
+      state.scenarios.push(name);
+      await saveScenarioOrder();
+    }
+    setStatus('Сценарий «' + name + '» сохранён', 'saved');
+    renderScenarios();
+  } catch (e) {
+    setStatus('Не удалось сохранить сценарий: ' + e.message, 'dirty');
+  }
+}
+
+async function loadScenario(name) {
+  try {
+    const fh = await state.scenariosHandle.getFileHandle(name + '.json');
+    const file = await fh.getFile();
+    state.rounds = JSON.parse(await file.text());
+    state.expanded = new Set();
+    render();
+    await saveRounds();
+    setStatus('Сценарий «' + name + '» загружен и применён к игре', 'saved');
+  } catch (e) {
+    setStatus('Не удалось загрузить сценарий: ' + e.message, 'dirty');
+  }
+}
+
+async function deleteScenario(name) {
+  if (!confirm('Удалить сценарий «' + name + '»? Это нельзя отменить.')) return;
+  try {
+    await state.scenariosHandle.removeEntry(name + '.json');
+  } catch (e) {
+    // already gone — fine, still remove it from the order below
+  }
+  state.scenarios = state.scenarios.filter((n) => n !== name);
+  await saveScenarioOrder();
+  renderScenarios();
+}
+
+let dragScenarioFrom = null;
+
+function renderScenarios() {
+  scenariosPanel.innerHTML = '';
+  if (!state.scenariosHandle) return;
+
+  const box = document.createElement('div');
+  box.className = 'scenarios-box';
+
+  const header = document.createElement('div');
+  header.className = 'scenarios-header';
+  const title = document.createElement('span');
+  title.textContent = 'Сценарии';
+  const saveBtn = document.createElement('button');
+  saveBtn.className = 'small-btn';
+  saveBtn.textContent = '+ Сохранить текущий как сценарий…';
+  saveBtn.onclick = saveCurrentAsScenario;
+  header.appendChild(title);
+  header.appendChild(saveBtn);
+  box.appendChild(header);
+
+  const list = document.createElement('div');
+  list.className = 'scenarios-list';
+
+  if (state.scenarios.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'scenarios-empty';
+    empty.textContent = 'Пока нет сохранённых сценариев.';
+    list.appendChild(empty);
+  } else {
+    state.scenarios.forEach((name, index) => {
+      list.appendChild(renderScenarioRow(name, index));
+    });
+  }
+
+  box.appendChild(list);
+  scenariosPanel.appendChild(box);
+}
+
+function renderScenarioRow(name, index) {
+  const row = document.createElement('div');
+  row.className = 'scenario-row';
+
+  const handle = document.createElement('span');
+  handle.className = 'drag-handle';
+  handle.textContent = '⠿';
+  handle.draggable = true;
+  handle.title = 'Перетащите, чтобы изменить порядок';
+  handle.addEventListener('dragstart', (e) => {
+    dragScenarioFrom = index;
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  row.appendChild(handle);
+
+  const label = document.createElement('span');
+  label.className = 'scenario-name';
+  label.textContent = name;
+  row.appendChild(label);
+
+  const loadBtn = document.createElement('button');
+  loadBtn.className = 'primary small-btn';
+  loadBtn.textContent = 'Загрузить';
+  loadBtn.onclick = () => loadScenario(name);
+  row.appendChild(loadBtn);
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'danger small-btn';
+  delBtn.textContent = 'Удалить';
+  delBtn.onclick = () => deleteScenario(name);
+  row.appendChild(delBtn);
+
+  row.addEventListener('dragover', (e) => {
+    if (dragScenarioFrom === null) return;
+    e.preventDefault();
+    row.classList.add('drag-over');
+  });
+  row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+  row.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    row.classList.remove('drag-over');
+    const from = dragScenarioFrom;
+    dragScenarioFrom = null;
+    if (from === null || from === index) return;
+    const [moved] = state.scenarios.splice(from, 1);
+    state.scenarios.splice(index, 0, moved);
+    await saveScenarioOrder();
+    renderScenarios();
+  });
+
+  return row;
 }
 
 // ---------- Round / question data helpers ----------
