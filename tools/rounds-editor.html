@@ -195,13 +195,24 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .badge {
-    font-size: 12px;
+  .round-delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: none;
+    background: transparent;
     color: var(--muted);
-    background: #f0f1f5;
     border-radius: 999px;
-    padding: 3px 10px;
-    white-space: nowrap;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .round-delete-btn:hover {
+    color: var(--danger);
+    background: var(--danger-bg);
   }
   .chevron { color: var(--muted); transition: transform .15s; }
   .round-card.expanded .chevron { transform: rotate(90deg); }
@@ -303,11 +314,6 @@
     text-align: center;
     color: var(--muted);
     padding: 60px 20px;
-  }
-  .card-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
   }
 </style>
 </head>
@@ -478,6 +484,8 @@ async function loadFromRoot(rootHandle) {
     state.dirty = false;
     btnSave.disabled = true;
     setStatus('Открыто: ' + rootHandle.name);
+    btnOpen.style.display = 'none';
+    btnReopen.style.display = 'none';
     render();
     await loadScenarioList();
     renderScenarios();
@@ -774,10 +782,19 @@ function renderRoundCard(round, index) {
   name.textContent = round.name || '(без названия)';
   head.appendChild(name);
 
-  const badge = document.createElement('span');
-  badge.className = 'badge';
-  badge.textContent = typeLabel(round.type);
-  head.appendChild(badge);
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'round-delete-btn';
+  deleteBtn.textContent = '✕';
+  deleteBtn.title = 'Удалить этап';
+  deleteBtn.onclick = (e) => {
+    e.stopPropagation();
+    if (!confirm('Удалить этап "' + (round.name || '') + '"?')) return;
+    state.rounds.splice(index, 1);
+    state.expanded.delete(index);
+    markDirty();
+    render();
+  };
+  head.appendChild(deleteBtn);
 
   const chevron = document.createElement('span');
   chevron.className = 'chevron';
@@ -908,23 +925,6 @@ function renderRoundBody(round, index) {
     };
     body.appendChild(addQBtn);
   }
-
-  // Footer: delete round
-  const footer = document.createElement('div');
-  footer.className = 'card-footer';
-  const delBtn = document.createElement('button');
-  delBtn.className = 'danger small-btn';
-  delBtn.textContent = 'Удалить этап';
-  delBtn.onclick = () => {
-    if (!confirm('Удалить этап "' + (round.name || '') + '"?')) return;
-    state.rounds.splice(index, 1);
-    state.expanded.delete(index);
-    markDirty();
-    render();
-  };
-  footer.appendChild(document.createElement('span'));
-  footer.appendChild(delBtn);
-  body.appendChild(footer);
 
   return body;
 }
