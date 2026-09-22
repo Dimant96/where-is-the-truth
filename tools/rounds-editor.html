@@ -72,12 +72,11 @@
     display: flex;
     align-items: flex-start;
     gap: 24px;
-    max-width: 1080px;
-    margin: 24px auto 80px;
+    margin: 24px 0 80px;
     padding: 0 16px;
   }
   .sidebar {
-    width: 280px;
+    width: 300px;
     flex-shrink: 0;
     position: sticky;
     top: 72px;
@@ -123,19 +122,28 @@
   }
   .scenario-row {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column;
+    gap: 8px;
     padding: 10px 14px;
     border-top: 1px solid var(--border);
   }
   .scenario-row:first-child { border-top: none; }
   .scenario-row.drag-over { border-top-color: var(--accent); }
+  .scenario-row-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
   .scenario-name {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    word-break: break-word;
+  }
+  .scenario-row-actions {
+    display: flex;
+    gap: 8px;
+    padding-left: 26px;
   }
   .scenarios-empty {
     padding: 16px 14px;
@@ -305,7 +313,7 @@
 </head>
 <body>
 <header>
-  <h1>Редактор этапов <small style="font-size:11px;color:#9ca3af;font-weight:400">build 9</small></h1>
+  <h1>Редактор этапов <small style="font-size:11px;color:#9ca3af;font-weight:400">build 10</small></h1>
   <button id="btnOpen">Открыть папку проекта…</button>
   <button id="btnReopen" style="display:none">Открыть ту же папку снова</button>
   <button id="btnSave" class="primary" disabled>Сохранить</button>
@@ -633,6 +641,9 @@ function renderScenarioRow(name, index) {
   const row = document.createElement('div');
   row.className = 'scenario-row';
 
+  const top = document.createElement('div');
+  top.className = 'scenario-row-top';
+
   const handle = document.createElement('span');
   handle.className = 'drag-handle';
   handle.textContent = '⠿';
@@ -642,24 +653,29 @@ function renderScenarioRow(name, index) {
     dragScenarioFrom = index;
     e.dataTransfer.effectAllowed = 'move';
   });
-  row.appendChild(handle);
+  top.appendChild(handle);
 
   const label = document.createElement('span');
   label.className = 'scenario-name';
   label.textContent = name;
-  row.appendChild(label);
+  top.appendChild(label);
+  row.appendChild(top);
+
+  const actions = document.createElement('div');
+  actions.className = 'scenario-row-actions';
 
   const loadBtn = document.createElement('button');
   loadBtn.className = 'primary small-btn';
   loadBtn.textContent = 'Загрузить';
   loadBtn.onclick = () => loadScenario(name);
-  row.appendChild(loadBtn);
+  actions.appendChild(loadBtn);
 
   const delBtn = document.createElement('button');
   delBtn.className = 'danger small-btn';
   delBtn.textContent = 'Удалить';
   delBtn.onclick = () => deleteScenario(name);
-  row.appendChild(delBtn);
+  actions.appendChild(delBtn);
+  row.appendChild(actions);
 
   row.addEventListener('dragover', (e) => {
     if (dragScenarioFrom === null) return;
