@@ -68,6 +68,19 @@
   }
   #status.dirty { color: #b45309; }
   #status.saved { color: var(--success); }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    padding: 14px 24px 0;
+  }
+  .tab-btn {
+    border-radius: 8px 8px 0 0;
+  }
+  .tab-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
   .layout {
     display: flex;
     align-items: flex-start;
@@ -149,6 +162,52 @@
     padding: 16px 14px;
     color: var(--muted);
     font-size: 13px;
+  }
+  .design-sections {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .design-section-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    border: none;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+  }
+  .design-section-item:first-child { border-top: none; }
+  .design-section-item.active {
+    background: var(--accent);
+    color: #fff;
+  }
+  .sound-slot {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+  }
+  .sound-slot label {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+  .sound-slot-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .sound-slot audio {
+    height: 32px;
+    max-width: 260px;
   }
   .error {
     background: var(--danger-bg);
@@ -325,16 +384,25 @@
   <button id="btnSave" class="primary" disabled>Сохранить</button>
   <span id="status"></span>
 </header>
-<div class="layout">
+<div id="initialHint" class="hint" style="margin:24px 16px;">
+  Нажмите «Открыть папку проекта» и выберите папку <b>where-is-the-truth</b> на своём компьютере.
+  Работает только в <b>Chrome</b> или <b>Edge</b>.
+</div>
+<nav id="tabs" class="tabs" style="display:none">
+  <button class="tab-btn" data-tab="scenarios">Сценарии</button>
+  <button class="tab-btn" data-tab="design">Дизайн</button>
+</nav>
+<div id="tabPanelDesign" class="tab-panel layout" style="display:none">
+  <aside class="sidebar">
+    <div id="designSectionsList" class="design-sections"></div>
+  </aside>
+  <main id="designSectionContent"></main>
+</div>
+<div id="tabPanelScenarios" class="tab-panel layout" style="display:none">
   <aside class="sidebar">
     <div id="scenariosPanel" class="scenarios-panel"></div>
   </aside>
-  <main id="app">
-    <div class="hint">
-      Нажмите «Открыть папку проекта» и выберите папку <b>where-is-the-truth</b> на своём компьютере.
-      Работает только в <b>Chrome</b> или <b>Edge</b>.
-    </div>
-  </main>
+  <main id="app"></main>
 </div>
 
 <script>
@@ -356,6 +424,7 @@ const state = {
   dragRoundFrom: null,
   scenariosHandle: null,
   scenarios: [], // ordered list of scenario names (without .json)
+  activeTab: null,
 };
 
 const app = document.getElementById('app');
@@ -364,6 +433,149 @@ const statusEl = document.getElementById('status');
 const btnOpen = document.getElementById('btnOpen');
 const btnReopen = document.getElementById('btnReopen');
 const btnSave = document.getElementById('btnSave');
+const initialHint = document.getElementById('initialHint');
+const tabsBar = document.getElementById('tabs');
+const tabButtons = tabsBar.querySelectorAll('.tab-btn');
+const layoutEl = document.getElementById('tabPanelScenarios');
+const designPanel = document.getElementById('tabPanelDesign');
+const designSectionsList = document.getElementById('designSectionsList');
+const designSectionContent = document.getElementById('designSectionContent');
+
+function setActiveTab(tab) {
+  state.activeTab = tab;
+  tabButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === tab));
+  layoutEl.style.display = tab === 'scenarios' ? '' : 'none';
+  designPanel.style.display = tab === 'design' ? '' : 'none';
+  if (tab === 'design' && !activeDesignSection) {
+    setActiveDesignSection(DESIGN_SECTIONS[0].id);
+  }
+}
+
+tabButtons.forEach((btn) => {
+  btn.onclick = () => setActiveTab(btn.dataset.tab);
+});
+
+// ---------- Design tab: sections list ----------
+const DESIGN_SECTIONS = [
+  { id: 'sounds', label: 'Звуки', render: renderSoundsSection },
+];
+let activeDesignSection = null;
+
+function renderDesignSectionsList() {
+  designSectionsList.innerHTML = '';
+  DESIGN_SECTIONS.forEach((section) => {
+    const btn = document.createElement('button');
+    btn.className = 'design-section-item' + (section.id === activeDesignSection ? ' active' : '');
+    btn.textContent = section.label;
+    btn.onclick = () => setActiveDesignSection(section.id);
+    designSectionsList.appendChild(btn);
+  });
+}
+
+function setActiveDesignSection(id) {
+  activeDesignSection = id;
+  renderDesignSectionsList();
+  const section = DESIGN_SECTIONS.find((s) => s.id === id);
+  designSectionContent.innerHTML = '';
+  if (section) section.render(designSectionContent);
+}
+
+// ---------- Design tab: Sounds section ----------
+const SOUND_SLOTS = [
+  { id: 'end-timer.mp3', label: 'Конец таймера' },
+  { id: 'win-question.mp3', label: 'Начисление баллов' },
+  { id: 'lose-question.mp3', label: 'Ошибочный ответ' },
+];
+
+function renderSoundsSection(container) {
+  SOUND_SLOTS.forEach((slot) => {
+    container.appendChild(renderSoundSlot(slot));
+  });
+}
+
+function renderSoundSlot(slot) {
+  const box = document.createElement('div');
+  box.className = 'sound-slot';
+
+  const label = document.createElement('label');
+  label.textContent = slot.label;
+  box.appendChild(label);
+
+  const controls = document.createElement('div');
+  controls.className = 'sound-slot-controls';
+
+  const audio = document.createElement('audio');
+  audio.controls = true;
+  controls.appendChild(audio);
+
+  const changeBtn = document.createElement('button');
+  changeBtn.className = 'small-btn';
+  changeBtn.textContent = 'Заменить файл';
+  changeBtn.onclick = () => pickSoundFile(slot);
+  controls.appendChild(changeBtn);
+
+  const deleteBtn = document.createElement('button');
+  deleteBtn.className = 'danger small-btn';
+  deleteBtn.textContent = 'Удалить файл';
+  deleteBtn.onclick = () => deleteSoundFile(slot);
+  controls.appendChild(deleteBtn);
+
+  box.appendChild(controls);
+
+  loadSoundPreview(slot.id, audio);
+
+  return box;
+}
+
+function loadSoundPreview(fileName, audioEl) {
+  state.audioHandle.getFileHandle(fileName)
+    .then((fh) => fh.getFile())
+    .then((file) => { audioEl.src = URL.createObjectURL(file); })
+    .catch(() => {});
+}
+
+async function pickSoundFile(slot) {
+  if (!window.showOpenFilePicker) {
+    setStatus('Этот браузер не поддерживает выбор файла таким способом.', 'dirty');
+    return;
+  }
+  let handles;
+  try {
+    handles = await window.showOpenFilePicker({
+      id: 'design-sounds',
+      multiple: false,
+      excludeAcceptAllOption: false,
+      types: [{
+        description: 'MP3',
+        accept: { 'audio/mpeg': ['.mp3'] },
+      }],
+    });
+  } catch (e) {
+    return; // user cancelled the dialog
+  }
+  try {
+    const file = await handles[0].getFile();
+    const targetHandle = await state.audioHandle.getFileHandle(slot.id, { create: true });
+    const writable = await targetHandle.createWritable();
+    await writable.write(await file.arrayBuffer());
+    await writable.close();
+    setStatus('Звук «' + slot.label + '» обновлён', 'saved');
+    if (activeDesignSection === 'sounds') setActiveDesignSection('sounds');
+  } catch (e) {
+    setStatus('Не удалось сохранить звук: ' + e.message, 'dirty');
+  }
+}
+
+async function deleteSoundFile(slot) {
+  if (!confirm('Удалить звук «' + slot.label + '»?')) return;
+  try {
+    await state.audioHandle.removeEntry(slot.id);
+    setStatus('Звук «' + slot.label + '» удалён', 'saved');
+  } catch (e) {
+    setStatus('Не удалось удалить звук: ' + e.message, 'dirty');
+  }
+  if (activeDesignSection === 'sounds') setActiveDesignSection('sounds');
+}
 
 // ---------- IndexedDB (remembers the last picked folder so we don't ask every time) ----------
 function idbOpen() {
@@ -465,6 +677,7 @@ async function loadFromRoot(rootHandle) {
     const assetsHandle = await srcHandle.getDirectoryHandle('assets');
     const roundsHandle = await assetsHandle.getFileHandle('rounds.json');
     const imagesHandle = await assetsHandle.getDirectoryHandle('questions-images');
+    const audioHandle = await assetsHandle.getDirectoryHandle('audio', { create: true });
     const scenariosHandle = await rootHandle.getDirectoryHandle('scenarios', { create: true });
     const file = await roundsHandle.getFile();
     const text = await file.text();
@@ -478,6 +691,7 @@ async function loadFromRoot(rootHandle) {
     state.rootHandle = rootHandle;
     state.roundsHandle = roundsHandle;
     state.imagesHandle = imagesHandle;
+    state.audioHandle = audioHandle;
     state.scenariosHandle = scenariosHandle;
     state.rounds = rounds;
     state.expanded = new Set();
@@ -486,6 +700,8 @@ async function loadFromRoot(rootHandle) {
     setStatus('Открыто: ' + rootHandle.name);
     btnOpen.style.display = 'none';
     btnReopen.style.display = 'none';
+    initialHint.style.display = 'none';
+    tabsBar.style.display = '';
     render();
     await loadScenarioList();
     renderScenarios();
