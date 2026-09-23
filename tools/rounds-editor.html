@@ -71,14 +71,19 @@
   .tabs {
     display: flex;
     gap: 8px;
-    padding: 14px 24px 0;
   }
   .tab-btn {
-    border-radius: 8px 8px 0 0;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-weight: 500;
+  }
+  .tab-btn:hover {
+    background: #f0f1f5;
+    color: var(--text);
   }
   .tab-btn.active {
     background: var(--accent);
-    border-color: var(--accent);
     color: #fff;
   }
   .layout {
@@ -93,8 +98,24 @@
     flex-shrink: 0;
     position: sticky;
     top: 72px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
   }
   .sidebar:has(#scenariosPanel:empty) { display: none; }
+  .scenario-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 14px;
+  }
+  .storage-heading {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    padding: 0 2px;
+  }
   @media (max-width: 860px) {
     .layout { flex-direction: column; }
     .sidebar { width: 100%; position: static; }
@@ -128,7 +149,11 @@
     padding: 12px 14px;
     border-bottom: 1px solid var(--border);
     font-weight: 600;
+    cursor: pointer;
   }
+  .scenarios-box:not(.expanded) .scenarios-header { border-bottom: none; }
+  .scenarios-header .chevron { transition: transform .15s; }
+  .scenarios-box.expanded .scenarios-header .chevron { transform: rotate(90deg); }
   .scenarios-list {
     display: flex;
     flex-direction: column;
@@ -369,6 +394,73 @@
     border-style: dashed;
     color: var(--muted);
   }
+  .add-round-controls {
+    display: flex;
+    gap: 10px;
+  }
+  .add-round-controls > .add-round-btn,
+  .add-round-controls > .add-from-buffer-wrap {
+    flex: 1;
+  }
+  .add-from-buffer-wrap {
+    position: relative;
+  }
+  .buffer-dropdown {
+    position: absolute;
+    bottom: 0;
+    left: calc(100% + 6px);
+    min-width: 240px;
+    max-width: 320px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    max-height: 260px;
+    overflow-y: auto;
+    z-index: 20;
+    text-align: left;
+  }
+  .buffer-dropdown-empty {
+    padding: 12px 14px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .buffer-dropdown-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .buffer-dropdown-row:first-child { border-top: none; }
+  .buffer-dropdown-row:hover { background: #f0f1f5; }
+  .buffer-dropdown-name {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .buffer-dropdown-delete {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    border-radius: 999px;
+    width: 22px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .buffer-dropdown-delete:hover {
+    color: var(--danger);
+    background: var(--danger-bg);
+  }
   .empty-state {
     text-align: center;
     color: var(--muted);
@@ -378,29 +470,31 @@
 </head>
 <body>
 <header>
-  <h1>Редактор этапов <small style="font-size:11px;color:#9ca3af;font-weight:400">build 10</small></h1>
+  <h1>Редактор <small style="font-size:11px;color:#9ca3af;font-weight:400">build 10</small></h1>
   <button id="btnOpen">Открыть папку проекта…</button>
   <button id="btnReopen" style="display:none">Открыть ту же папку снова</button>
   <button id="btnSave" class="primary" disabled>Сохранить</button>
+  <nav id="tabs" class="tabs" style="display:none">
+    <button class="tab-btn" data-tab="scenarios">Сценарии</button>
+    <button class="tab-btn" data-tab="design">Дизайн</button>
+  </nav>
   <span id="status"></span>
 </header>
 <div id="initialHint" class="hint" style="margin:24px 16px;">
   Нажмите «Открыть папку проекта» и выберите папку <b>where-is-the-truth</b> на своём компьютере.
   Работает только в <b>Chrome</b> или <b>Edge</b>.
 </div>
-<nav id="tabs" class="tabs" style="display:none">
-  <button class="tab-btn" data-tab="scenarios">Сценарии</button>
-  <button class="tab-btn" data-tab="design">Дизайн</button>
-</nav>
-<div id="tabPanelDesign" class="tab-panel layout" style="display:none">
+<div id="tabPanelDesign" class="layout" style="display:none">
   <aside class="sidebar">
     <div id="designSectionsList" class="design-sections"></div>
   </aside>
   <main id="designSectionContent"></main>
 </div>
-<div id="tabPanelScenarios" class="tab-panel layout" style="display:none">
+<div id="tabPanelScenarios" class="layout" style="display:none">
   <aside class="sidebar">
+    <div class="storage-heading">Хранилище</div>
     <div id="scenariosPanel" class="scenarios-panel"></div>
+    <div id="stageBufferPanel" class="scenarios-panel"></div>
   </aside>
   <main id="app"></main>
 </div>
@@ -424,11 +518,16 @@ const state = {
   dragRoundFrom: null,
   scenariosHandle: null,
   scenarios: [], // ordered list of scenario names (without .json)
+  scenariosExpanded: false,
+  stageBufferHandle: null,
+  stageBuffer: [], // sorted list of saved single-round template names (without .json)
+  stageBufferExpanded: false,
   activeTab: null,
 };
 
 const app = document.getElementById('app');
 const scenariosPanel = document.getElementById('scenariosPanel');
+const stageBufferPanel = document.getElementById('stageBufferPanel');
 const statusEl = document.getElementById('status');
 const btnOpen = document.getElementById('btnOpen');
 const btnReopen = document.getElementById('btnReopen');
@@ -679,6 +778,7 @@ async function loadFromRoot(rootHandle) {
     const imagesHandle = await assetsHandle.getDirectoryHandle('questions-images');
     const audioHandle = await assetsHandle.getDirectoryHandle('audio', { create: true });
     const scenariosHandle = await rootHandle.getDirectoryHandle('scenarios', { create: true });
+    const stageBufferHandle = await rootHandle.getDirectoryHandle('stage-buffer', { create: true });
     const file = await roundsHandle.getFile();
     const text = await file.text();
     let rounds;
@@ -693,6 +793,7 @@ async function loadFromRoot(rootHandle) {
     state.imagesHandle = imagesHandle;
     state.audioHandle = audioHandle;
     state.scenariosHandle = scenariosHandle;
+    state.stageBufferHandle = stageBufferHandle;
     state.rounds = rounds;
     state.expanded = new Set();
     state.dirty = false;
@@ -705,6 +806,8 @@ async function loadFromRoot(rootHandle) {
     render();
     await loadScenarioList();
     renderScenarios();
+    await loadStageBufferList();
+    renderStageBufferPanel();
   } catch (e) {
     showError(
       'В выбранной папке не найден src/assets/rounds.json.\n' +
@@ -765,6 +868,73 @@ async function saveScenarioOrder() {
 
 function sanitizeScenarioName(raw) {
   return raw.trim().replace(/[\\/:*?"<>|]/g, '').slice(0, 80);
+}
+
+// ---------- Stage buffer (saved single rounds, stored as stage-buffer/<name>.json) ----------
+async function loadStageBufferList() {
+  const dir = state.stageBufferHandle;
+  const names = [];
+  for await (const [name, handle] of dir.entries()) {
+    if (handle.kind === 'file' && name.endsWith('.json')) {
+      names.push(name.slice(0, -5));
+    }
+  }
+  names.sort();
+  state.stageBuffer = names;
+}
+
+async function saveRoundToBuffer(round) {
+  if (!state.stageBufferHandle) return;
+  const raw = prompt('Название этапа для хранилища:', round.name || '');
+  if (raw === null) return;
+  const name = sanitizeScenarioName(raw);
+  if (!name) {
+    setStatus('Пустое или недопустимое название', 'dirty');
+    return;
+  }
+  const exists = state.stageBuffer.includes(name);
+  if (exists && !confirm('Этап «' + name + '» уже есть в хранилище. Перезаписать?')) {
+    return;
+  }
+  try {
+    const fh = await state.stageBufferHandle.getFileHandle(name + '.json', { create: true });
+    const writable = await fh.createWritable();
+    await writable.write(JSON.stringify(round, null, 2) + '\n');
+    await writable.close();
+    if (!exists) {
+      state.stageBuffer.push(name);
+      state.stageBuffer.sort();
+    }
+    setStatus('Этап «' + name + '» добавлен в хранилище', 'saved');
+    renderStageBufferPanel();
+  } catch (e) {
+    setStatus('Не удалось добавить этап в хранилище: ' + e.message, 'dirty');
+  }
+}
+
+async function loadRoundFromBuffer(name) {
+  const fh = await state.stageBufferHandle.getFileHandle(name + '.json');
+  const file = await fh.getFile();
+  return JSON.parse(await file.text());
+}
+
+async function addBufferRoundToCurrent(name) {
+  const data = await loadRoundFromBuffer(name);
+  state.rounds.push(JSON.parse(JSON.stringify(data)));
+  markDirty();
+  render();
+}
+
+async function deleteRoundFromBuffer(name) {
+  if (!confirm('Удалить этап «' + name + '» из хранилища? Это нельзя отменить.')) return;
+  try {
+    await state.stageBufferHandle.removeEntry(name + '.json');
+  } catch (e) {
+    // already gone — fine
+  }
+  state.stageBuffer = state.stageBuffer.filter((n) => n !== name);
+  renderBufferDropdown();
+  renderStageBufferPanel();
 }
 
 async function saveCurrentAsScenario() {
@@ -829,35 +999,44 @@ function renderScenarios() {
   if (!state.scenariosHandle) return;
 
   const box = document.createElement('div');
-  box.className = 'scenarios-box';
+  box.className = 'scenarios-box' + (state.scenariosExpanded ? ' expanded' : '');
 
   const header = document.createElement('div');
   header.className = 'scenarios-header';
+  header.onclick = () => {
+    state.scenariosExpanded = !state.scenariosExpanded;
+    renderScenarios();
+  };
+
   const title = document.createElement('span');
   title.textContent = 'Сценарии';
-  const saveBtn = document.createElement('button');
-  saveBtn.className = 'small-btn';
-  saveBtn.textContent = '+ Сохранить текущий как сценарий…';
-  saveBtn.onclick = saveCurrentAsScenario;
   header.appendChild(title);
-  header.appendChild(saveBtn);
+
+  const chevron = document.createElement('span');
+  chevron.className = 'chevron';
+  chevron.textContent = '›';
+  header.appendChild(chevron);
+
   box.appendChild(header);
 
-  const list = document.createElement('div');
-  list.className = 'scenarios-list';
+  if (state.scenariosExpanded) {
+    const list = document.createElement('div');
+    list.className = 'scenarios-list';
 
-  if (state.scenarios.length === 0) {
-    const empty = document.createElement('div');
-    empty.className = 'scenarios-empty';
-    empty.textContent = 'Пока нет сохранённых сценариев.';
-    list.appendChild(empty);
-  } else {
-    state.scenarios.forEach((name, index) => {
-      list.appendChild(renderScenarioRow(name, index));
-    });
+    if (state.scenarios.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'scenarios-empty';
+      empty.textContent = 'Пока нет сохранённых сценариев.';
+      list.appendChild(empty);
+    } else {
+      state.scenarios.forEach((name, index) => {
+        list.appendChild(renderScenarioRow(name, index));
+      });
+    }
+
+    box.appendChild(list);
   }
 
-  box.appendChild(list);
   scenariosPanel.appendChild(box);
 }
 
@@ -922,6 +1101,84 @@ function renderScenarioRow(name, index) {
   return row;
 }
 
+function renderStageBufferPanel() {
+  stageBufferPanel.innerHTML = '';
+  if (!state.stageBufferHandle) return;
+
+  const box = document.createElement('div');
+  box.className = 'scenarios-box' + (state.stageBufferExpanded ? ' expanded' : '');
+
+  const header = document.createElement('div');
+  header.className = 'scenarios-header';
+  header.onclick = () => {
+    state.stageBufferExpanded = !state.stageBufferExpanded;
+    renderStageBufferPanel();
+  };
+
+  const title = document.createElement('span');
+  title.textContent = 'Этапы';
+  header.appendChild(title);
+
+  const chevron = document.createElement('span');
+  chevron.className = 'chevron';
+  chevron.textContent = '›';
+  header.appendChild(chevron);
+
+  box.appendChild(header);
+
+  if (state.stageBufferExpanded) {
+    const list = document.createElement('div');
+    list.className = 'scenarios-list';
+
+    if (state.stageBuffer.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'scenarios-empty';
+      empty.textContent = 'Пока нет сохранённых этапов.';
+      list.appendChild(empty);
+    } else {
+      state.stageBuffer.forEach((name) => {
+        list.appendChild(renderStageBufferRow(name));
+      });
+    }
+
+    box.appendChild(list);
+  }
+
+  stageBufferPanel.appendChild(box);
+}
+
+function renderStageBufferRow(name) {
+  const row = document.createElement('div');
+  row.className = 'scenario-row';
+
+  const top = document.createElement('div');
+  top.className = 'scenario-row-top';
+
+  const label = document.createElement('span');
+  label.className = 'scenario-name';
+  label.textContent = name;
+  top.appendChild(label);
+  row.appendChild(top);
+
+  const actions = document.createElement('div');
+  actions.className = 'scenario-row-actions';
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'primary small-btn';
+  addBtn.textContent = 'Добавить';
+  addBtn.onclick = () => addBufferRoundToCurrent(name);
+  actions.appendChild(addBtn);
+
+  const delBtn = document.createElement('button');
+  delBtn.className = 'danger small-btn';
+  delBtn.textContent = 'Удалить';
+  delBtn.onclick = () => deleteRoundFromBuffer(name);
+  actions.appendChild(delBtn);
+  row.appendChild(actions);
+
+  return row;
+}
+
 // ---------- Round / question data helpers ----------
 function newRound() {
   return { type: RoundType.Question, name: 'Новый этап', questions: [{ text: '' }] };
@@ -943,7 +1200,17 @@ function applyTypeChange(round, type) {
 // ---------- Rendering ----------
 function render() {
   if (!state.rounds) return;
+  closeBufferDropdown();
   app.innerHTML = '';
+
+  const toolbar = document.createElement('div');
+  toolbar.className = 'scenario-toolbar';
+  const saveScenarioBtn = document.createElement('button');
+  saveScenarioBtn.className = 'small-btn';
+  saveScenarioBtn.textContent = 'Добавить сценарий в хранилище';
+  saveScenarioBtn.onclick = () => saveCurrentAsScenario();
+  toolbar.appendChild(saveScenarioBtn);
+  app.appendChild(toolbar);
 
   if (state.rounds.length === 0) {
     const empty = document.createElement('div');
@@ -956,6 +1223,9 @@ function render() {
     app.appendChild(renderRoundCard(round, index));
   });
 
+  const controls = document.createElement('div');
+  controls.className = 'add-round-controls';
+
   const addBtn = document.createElement('button');
   addBtn.className = 'add-round-btn';
   addBtn.textContent = '+ Добавить этап';
@@ -965,7 +1235,93 @@ function render() {
     markDirty();
     render();
   };
-  app.appendChild(addBtn);
+  controls.appendChild(addBtn);
+
+  const bufferWrap = document.createElement('div');
+  bufferWrap.className = 'add-from-buffer-wrap';
+  const bufferBtn = document.createElement('button');
+  bufferBtn.className = 'add-round-btn';
+  bufferBtn.textContent = '+ Добавить из хранилища';
+  bufferBtn.onclick = (e) => {
+    e.stopPropagation();
+    toggleBufferDropdown(bufferWrap);
+  };
+  bufferWrap.appendChild(bufferBtn);
+  controls.appendChild(bufferWrap);
+
+  app.appendChild(controls);
+}
+
+// ---------- Stage buffer dropdown ("+ Добавить из хранилища") ----------
+let bufferDropdownEl = null;
+let bufferWrapEl = null;
+
+function closeBufferDropdown() {
+  if (bufferDropdownEl) bufferDropdownEl.remove();
+  bufferDropdownEl = null;
+  bufferWrapEl = null;
+  document.removeEventListener('click', onBufferDropdownOutsideClick);
+  document.removeEventListener('keydown', onBufferDropdownEscape);
+}
+
+function onBufferDropdownOutsideClick(e) {
+  if (bufferWrapEl && !bufferWrapEl.contains(e.target)) closeBufferDropdown();
+}
+
+function onBufferDropdownEscape(e) {
+  if (e.key === 'Escape') closeBufferDropdown();
+}
+
+function toggleBufferDropdown(wrapEl) {
+  if (bufferDropdownEl) {
+    closeBufferDropdown();
+    return;
+  }
+  bufferWrapEl = wrapEl;
+  bufferDropdownEl = document.createElement('div');
+  bufferDropdownEl.className = 'buffer-dropdown';
+  wrapEl.appendChild(bufferDropdownEl);
+  renderBufferDropdown();
+  setTimeout(() => {
+    document.addEventListener('click', onBufferDropdownOutsideClick);
+    document.addEventListener('keydown', onBufferDropdownEscape);
+  }, 0);
+}
+
+function renderBufferDropdown() {
+  if (!bufferDropdownEl) return;
+  bufferDropdownEl.innerHTML = '';
+
+  if (state.stageBuffer.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'buffer-dropdown-empty';
+    empty.textContent = 'Хранилище пусто';
+    bufferDropdownEl.appendChild(empty);
+    return;
+  }
+
+  state.stageBuffer.forEach((name) => {
+    const row = document.createElement('div');
+    row.className = 'buffer-dropdown-row';
+
+    const label = document.createElement('span');
+    label.className = 'buffer-dropdown-name';
+    label.textContent = name;
+    label.onclick = () => addBufferRoundToCurrent(name);
+    row.appendChild(label);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'buffer-dropdown-delete';
+    delBtn.textContent = '✕';
+    delBtn.title = 'Удалить из хранилища';
+    delBtn.onclick = (e) => {
+      e.stopPropagation();
+      deleteRoundFromBuffer(name);
+    };
+    row.appendChild(delBtn);
+
+    bufferDropdownEl.appendChild(row);
+  });
 }
 
 function renderRoundCard(round, index) {
@@ -997,6 +1353,15 @@ function renderRoundCard(round, index) {
   name.className = 'round-name';
   name.textContent = round.name || '(без названия)';
   head.appendChild(name);
+
+  const saveToBufferBtn = document.createElement('button');
+  saveToBufferBtn.className = 'small-btn';
+  saveToBufferBtn.textContent = 'Добавить в хранилище';
+  saveToBufferBtn.onclick = (e) => {
+    e.stopPropagation();
+    saveRoundToBuffer(round);
+  };
+  head.appendChild(saveToBufferBtn);
 
   const deleteBtn = document.createElement('button');
   deleteBtn.className = 'round-delete-btn';
