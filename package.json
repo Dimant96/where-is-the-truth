@@ -2,12 +2,12 @@
   "name": "haltura",
   "version": "0.0.0",
   "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "test": "ng test",
-    "lint": "ng lint",
-    "e2e": "ng e2e"
+    "ng": "node tools/ng.js",
+    "start": "node tools/ng.js serve",
+    "build": "node tools/ng.js build",
+    "test": "node tools/ng.js test",
+    "lint": "node tools/ng.js lint",
+    "e2e": "node tools/ng.js e2e"
   },
   "private": true,
   "dependencies": {
