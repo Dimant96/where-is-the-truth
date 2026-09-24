@@ -1,27 +1,42 @@
-#Where is the truth
+# Где правда
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.0.5.
+Игра-викторина для двух команд и Конструктор, в котором собираются её этапы и оформление. Всё работает локально, без интернета.
 
-## Development server
+## Что нужно
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+- [Node.js](https://nodejs.org) любой версии.
+- Браузер Chrome или Edge — Конструктор работает с файлами на диске только в них.
 
-## Code scaffolding
+## Установка на новом компьютере
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+```bash
+git clone https://github.com/Dimant96/where-is-the-truth.git
+cd where-is-the-truth
+git checkout feature/rounds-editor
+npm ci
+```
 
-## Build
+Интернет нужен только для `npm ci`: команда один раз скачивает пакеты игры.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `--prod` flag for a production build.
+Если на Windows при клонировании появляется ошибка `Filename too long`, положите проект в папку с путём покороче или выполните `git config --global core.longpaths true`.
 
-## Running unit tests
+## Игра
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+- `npm start` — запустить игру, открыть в браузере `http://localhost:4200`.
+- `npm run build` — собрать игру в папку `dist/`.
 
-## Running end-to-end tests
+## Конструктор
 
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
+Откройте файл `tools/rounds-editor.html` в Chrome или Edge и нажмите «Откройте папку проекта». Выберите папку `where-is-the-truth`. Конструктор запомнит её и в следующий раз откроет сам.
 
-## Further help
+Где Конструктор хранит данные:
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+| Что | Где |
+|---|---|
+| Этапы текущей игры | `src/assets/rounds.json` |
+| Картинки вопросов | `src/assets/questions-images/` |
+| Сценарии и этапы из хранилища | `scenarios/`, `stage-buffer/` |
+| Фоны, шрифт, звуки | `src/assets/background/`, `src/assets/fonts/`, `src/assets/audio/` |
+| Баллы за ответ и имя соревнований | `src/assets/settings.json` |
+
+Если игра запущена через `npm start`, изменения из Конструктора подхватываются сами. Фоны, шрифт и звуки видны после перезагрузки страницы игры.

@@ -3,6 +3,10 @@ import {ActivatedRoute} from '@angular/router';
 import {RoundService} from '../../services/round.service';
 import {map} from 'rxjs/operators';
 import {GameNavigationService} from '../../../../services/game-navigation.service';
+import settings from '../../../../../../../assets/settings.json';
+
+const defaultStageWord = 'Этап';
+const configuredStageWord = (settings as {stageWord?: unknown}).stageWord;
 
 @Component({
     selector: 'app-preview',
@@ -11,6 +15,9 @@ import {GameNavigationService} from '../../../../services/game-navigation.servic
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PreviewComponent {
+    readonly stageWord = typeof configuredStageWord === 'string' && configuredStageWord.trim()
+        ? configuredStageWord.trim()
+        : defaultStageWord;
     readonly roundNumber$ = this.activatedRoute.parent.params.pipe(map(({round}) => +round));
     readonly round$ = this.activatedRoute
         .parent

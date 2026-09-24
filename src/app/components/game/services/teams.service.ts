@@ -3,8 +3,12 @@ import {BehaviorSubject, Observable} from 'rxjs';
 import {Team} from '../interfaces/team.interface';
 import {teamsStorageKey} from './constants/teams-storage-key.const';
 import {defaultTeams} from './constants/default-teams.const';
+import settings from '../../../../assets/settings.json';
 
-const scoreBumpValue = 100;
+const defaultScoreBumpValue = 100;
+const scoreBumpValue = Number.isInteger(settings.scorePoints) && settings.scorePoints > 0
+    ? settings.scorePoints
+    : defaultScoreBumpValue;
 const winnerBumpValue = 1;
 
 @Injectable()
