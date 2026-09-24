@@ -14,8 +14,8 @@
     --surface-3: #40414a;
     --text: #e8e9ec;
     --muted: #9a9ba5;
-    --accent: #6366f1;
-    --accent-hover: #7c76f5;
+    --accent: #35867e;
+    --accent-hover: #439a90;
     --danger: #f36a6a;
     --danger-bg: #3a2225;
     --danger-border: #5a2f2f;
@@ -35,11 +35,12 @@
     z-index: 10;
     background: var(--card-bg);
     border-bottom: 1px solid var(--border);
-    padding: 14px 24px;
+    height: 53px;
+    padding: 0 24px;
     display: flex;
     align-items: center;
     gap: 12px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
   }
   header h1 {
     font-size: 18px;
@@ -48,13 +49,18 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
+  }
+  header button {
+    padding: 6px 14px;
+    font-size: 14px;
+    line-height: 18px;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   .cube-mark {
-    width: 16px;
-    height: 16px;
-    border-radius: 3px;
-    background: linear-gradient(135deg, #AFA9EC 0%, #7F77DD 50%, #534AB7 100%);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 1px rgba(0,0,0,0.4);
+    width: 17px;
+    height: 17px;
     flex-shrink: 0;
   }
   button {
@@ -71,6 +77,7 @@
   button.primary {
     background: var(--accent);
     color: #fff;
+    font-weight: 600;
   }
   button.primary:hover { background: var(--accent-hover); }
   button.danger { color: var(--danger); }
@@ -80,7 +87,16 @@
     font-size: 13px;
     color: var(--muted);
     white-space: nowrap;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
+  #btnSave {
+    background: #3fe0cc;
+    color: #062521;
+    font-weight: 600;
+  }
+  #btnSave:hover:not(:disabled) { background: #6ae8d8; }
   #status.dirty { color: #f59e0b; }
   #status.saved { color: var(--success); }
   .tabs {
@@ -98,10 +114,19 @@
     color: var(--text);
   }
   .tab-btn.active {
-    background: var(--accent);
     color: #fff;
   }
+  .tab-backdrop {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
   .layout {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: flex-start;
     gap: 24px;
@@ -120,10 +145,15 @@
   .sidebar:has(#scenariosPanel:empty) { display: none; }
   .scenario-toolbar {
     display: flex;
+    align-items: center;
     justify-content: flex-end;
+    min-height: 30px;
     margin-bottom: 14px;
   }
   .storage-heading {
+    display: flex;
+    align-items: center;
+    min-height: 30px;
     font-size: 13px;
     font-weight: 700;
     text-transform: uppercase;
@@ -191,6 +221,12 @@
     border-radius: 12px;
     overflow: hidden;
   }
+  .storage-group {
+    border-radius: 12px;
+    overflow: hidden;
+  }
+  .storage-group .scenarios-box { border-radius: 0; }
+  .storage-group .scenarios-panel + .scenarios-panel .scenarios-box { border-top: 1px solid var(--border); }
   .scenarios-header {
     display: flex;
     align-items: center;
@@ -219,7 +255,7 @@
   .scenario-row.drag-over { border-top-color: var(--accent); }
   .scenario-row-top {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 8px;
   }
   .scenario-name {
@@ -230,8 +266,8 @@
   }
   .scenario-row-actions {
     display: flex;
-    gap: 8px;
-    padding-left: 26px;
+    gap: 6px;
+    flex-shrink: 0;
   }
   .scenarios-empty {
     padding: 16px 14px;
@@ -292,12 +328,15 @@
     margin-bottom: 20px;
     white-space: pre-line;
   }
+  .round-list {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
   .round-card {
     background: var(--card-bg);
-    border-radius: 12px;
-    margin-bottom: 10px;
-    overflow: hidden;
   }
+  .round-card + .round-card { border-top: 1px solid var(--border); }
   .round-card.drag-over { outline: 2px solid var(--accent); outline-offset: -2px; }
   .round-head {
     display: flex;
@@ -328,29 +367,72 @@
   }
   .round-actions {
     display: flex;
-    gap: 2px;
+    gap: 6px;
+    margin-right: 10px;
     opacity: 0;
     transition: opacity .15s;
     flex-shrink: 0;
   }
   .round-head:hover .round-actions { opacity: 1; }
-  .round-icon-btn {
-    display: flex;
+  /* Glass tile, like a cube face: quiet at rest, lights up in its hue on hover like a balloon. */
+  .glass-btn {
+    --glow: 63,224,204;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 30px;
+    height: 30px;
     padding: 0;
-    border: none;
-    background: transparent;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.12);
     color: var(--muted);
-    border-radius: 7px;
     cursor: pointer;
     flex-shrink: 0;
+    transition: background .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s;
   }
-  .round-icon-btn:hover { background: var(--surface-3); color: var(--text); }
-  .round-icon-btn.danger:hover { background: var(--danger-bg); color: var(--danger); }
-  .chevron { color: var(--muted); transition: transform .15s; }
+  .glass-btn.danger { --glow: 255,124,156; color: var(--muted); }
+  .glass-btn:hover:not(:disabled) {
+    background: rgba(var(--glow),0.18);
+    border-color: rgba(var(--glow),0.55);
+    color: #fff;
+    transform: translateY(-1px) scale(1.06);
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,0.35),
+      0 0 14px rgba(var(--glow),0.45),
+      -1px 0 0 rgba(255,70,80,0.35),
+      1px 0 0 rgba(70,200,255,0.35);
+  }
+  .glass-btn:active:not(:disabled) { transform: scale(0.96); }
+  .glass-btn svg { width: 17px; height: 17px; }
+  .glass-tip {
+    position: fixed;
+    z-index: 100;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    white-space: nowrap;
+    color: var(--text);
+    background: rgba(20,21,24,0.92);
+    border: 1px solid rgba(var(--glow),0.45);
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 4px);
+    transition: opacity .15s, transform .15s;
+  }
+  .glass-tip.visible { opacity: 1; transform: translate(-50%, 0); }
+  .chevron {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    color: var(--muted);
+    transition: transform .15s;
+  }
+  .chevron svg { width: 18px; height: 18px; stroke-width: 2.2; }
   .round-card.expanded .chevron { transform: rotate(90deg); }
   .round-body {
     border-top: 1px solid var(--border);
@@ -523,15 +605,17 @@
 </head>
 <body>
 <header>
-  <h1><span class="cube-mark" aria-hidden="true"></span>Редактор <small style="font-size:11px;color:var(--muted);font-weight:400">build 10</small></h1>
-  <button id="btnOpen">Открыть папку проекта…</button>
-  <button id="btnReopen" style="display:none">Открыть ту же папку снова</button>
-  <button id="btnSave" class="primary" disabled>Сохранить</button>
+  <h1><svg class="cube-mark" viewBox="0 0 20 20" aria-hidden="true">
+    <polygon points="10,0 19,5 10,10 1,5" fill="#fff3d6"/>
+    <polygon points="1,5 10,10 10,20 1,15" fill="#ffc85a"/>
+    <polygon points="10,10 19,5 19,15 10,20" fill="#c77f10"/>
+  </svg>Редактор <small style="font-size:11px;color:var(--muted);font-weight:400">build 10</small></h1>
   <nav id="tabs" class="tabs" style="display:none">
     <button class="tab-btn" data-tab="scenarios">Сценарии</button>
     <button class="tab-btn" data-tab="design">Дизайн</button>
   </nav>
   <span id="status"></span>
+  <button id="btnSave" disabled style="display:none">Сохранить</button>
 </header>
 <div id="heroBanner" class="hero-banner">
   <canvas id="heroCanvas" class="hero-canvas" role="img" aria-label="Редактор"></canvas>
@@ -539,6 +623,7 @@
   <div id="heroError" class="error hero-error" style="display:none"></div>
   <button id="initialHint" class="hero-cta" type="button">Откройте папку проекта</button>
 </div>
+<canvas id="tabBackdrop" class="tab-backdrop" aria-hidden="true" style="display:none"></canvas>
 <div id="tabPanelDesign" class="layout" style="display:none">
   <aside class="sidebar">
     <div id="designSectionsList" class="design-sections"></div>
@@ -548,8 +633,10 @@
 <div id="tabPanelScenarios" class="layout" style="display:none">
   <aside class="sidebar">
     <div class="storage-heading">Хранилище</div>
-    <div id="scenariosPanel" class="scenarios-panel"></div>
-    <div id="stageBufferPanel" class="scenarios-panel"></div>
+    <div class="storage-group">
+      <div id="scenariosPanel" class="scenarios-panel"></div>
+      <div id="stageBufferPanel" class="scenarios-panel"></div>
+    </div>
   </aside>
   <main id="app"></main>
 </div>
@@ -565,6 +652,7 @@ const RoundType = {
 
 const state = {
   rootHandle: null,
+  pendingHandle: null, // remembered folder handle awaiting a user gesture to re-request permission
   imagesHandle: null,
   roundsHandle: null,
   rounds: null,
@@ -584,8 +672,6 @@ const app = document.getElementById('app');
 const scenariosPanel = document.getElementById('scenariosPanel');
 const stageBufferPanel = document.getElementById('stageBufferPanel');
 const statusEl = document.getElementById('status');
-const btnOpen = document.getElementById('btnOpen');
-const btnReopen = document.getElementById('btnReopen');
 const btnSave = document.getElementById('btnSave');
 const initialHint = document.getElementById('initialHint');
 const tabsBar = document.getElementById('tabs');
@@ -596,6 +682,7 @@ const designSectionsList = document.getElementById('designSectionsList');
 const designSectionContent = document.getElementById('designSectionContent');
 const heroBanner = document.getElementById('heroBanner');
 const heroError = document.getElementById('heroError');
+const tabBackdrop = document.getElementById('tabBackdrop');
 
 function setActiveTab(tab) {
   state.activeTab = tab;
@@ -603,6 +690,7 @@ function setActiveTab(tab) {
   layoutEl.style.display = tab === 'scenarios' ? '' : 'none';
   designPanel.style.display = tab === 'design' ? '' : 'none';
   heroBanner.style.display = tab ? 'none' : '';
+  tabBackdrop.style.display = tab ? '' : 'none';
   if (tab === 'design' && !activeDesignSection) {
     setActiveDesignSection(DESIGN_SECTIONS[0].id);
   }
@@ -671,9 +759,7 @@ function renderSoundSlot(slot) {
   changeBtn.onclick = () => pickSoundFile(slot);
   controls.appendChild(changeBtn);
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.className = 'danger small-btn';
-  deleteBtn.textContent = 'Удалить файл';
+  const deleteBtn = createIconBtn(ICON_TRASH, 'Удалить файл', true);
   deleteBtn.onclick = () => deleteSoundFile(slot);
   controls.appendChild(deleteBtn);
 
@@ -790,6 +876,17 @@ function escapeHtml(s) {
 
 // ---------- Opening the project folder ----------
 async function pickFolder() {
+  // If we remember a folder from last time, try to reuse it before prompting a new picker.
+  if (state.pendingHandle) {
+    const handle = state.pendingHandle;
+    const perm = await handle.requestPermission({ mode: 'readwrite' }).catch(() => 'denied');
+    if (perm === 'granted') {
+      state.pendingHandle = null;
+      await loadFromRoot(handle);
+      return;
+    }
+    setStatus('Доступ не предоставлен', 'dirty');
+  }
   if (!window.showDirectoryPicker) {
     showError('Этот браузер не поддерживает прямой доступ к файлам.\nОткройте этот файл в Chrome или Edge.');
     return;
@@ -816,16 +913,9 @@ async function tryRestore() {
   if (perm === 'granted') {
     loadFromRoot(handle);
   } else {
-    btnReopen.style.display = '';
-    btnReopen.onclick = async () => {
-      const p = await handle.requestPermission({ mode: 'readwrite' }).catch(() => 'denied');
-      if (p === 'granted') {
-        btnReopen.style.display = 'none';
-        loadFromRoot(handle);
-      } else {
-        setStatus('Доступ не предоставлен', 'dirty');
-      }
-    };
+    // Requesting permission needs a user gesture, so remember the handle and
+    // let the "Открыть папку проекта" button reuse it on click.
+    state.pendingHandle = handle;
   }
 }
 
@@ -858,10 +948,10 @@ async function loadFromRoot(rootHandle) {
     state.expanded = new Set();
     state.dirty = false;
     btnSave.disabled = true;
-    setStatus('Открыто: ' + rootHandle.name);
-    btnOpen.style.display = 'none';
-    btnReopen.style.display = 'none';
+    setStatus('');
+    btnSave.style.display = '';
     initialHint.style.display = 'none';
+    heroBalloons.lightFromTop();
     heroError.style.display = 'none';
     tabsBar.style.display = '';
     render();
@@ -1075,7 +1165,7 @@ function renderScenarios() {
 
   const chevron = document.createElement('span');
   chevron.className = 'chevron';
-  chevron.textContent = '›';
+  chevron.innerHTML = ICON_CHEVRON;
   header.appendChild(chevron);
 
   box.appendChild(header);
@@ -1123,23 +1213,19 @@ function renderScenarioRow(name, index) {
   label.className = 'scenario-name';
   label.textContent = name;
   top.appendChild(label);
-  row.appendChild(top);
 
   const actions = document.createElement('div');
   actions.className = 'scenario-row-actions';
 
-  const loadBtn = document.createElement('button');
-  loadBtn.className = 'primary small-btn';
-  loadBtn.textContent = 'Загрузить';
+  const loadBtn = createIconBtn(ICON_LOAD, 'Загрузить');
   loadBtn.onclick = () => loadScenario(name);
   actions.appendChild(loadBtn);
 
-  const delBtn = document.createElement('button');
-  delBtn.className = 'danger small-btn';
-  delBtn.textContent = 'Удалить';
+  const delBtn = createIconBtn(ICON_TRASH, 'Удалить', true);
   delBtn.onclick = () => deleteScenario(name);
   actions.appendChild(delBtn);
-  row.appendChild(actions);
+  top.appendChild(actions);
+  row.appendChild(top);
 
   row.addEventListener('dragover', (e) => {
     if (dragScenarioFrom === null) return;
@@ -1182,7 +1268,7 @@ function renderStageBufferPanel() {
 
   const chevron = document.createElement('span');
   chevron.className = 'chevron';
-  chevron.textContent = '›';
+  chevron.innerHTML = ICON_CHEVRON;
   header.appendChild(chevron);
 
   box.appendChild(header);
@@ -1219,23 +1305,19 @@ function renderStageBufferRow(name) {
   label.className = 'scenario-name';
   label.textContent = name;
   top.appendChild(label);
-  row.appendChild(top);
 
   const actions = document.createElement('div');
   actions.className = 'scenario-row-actions';
 
-  const addBtn = document.createElement('button');
-  addBtn.className = 'primary small-btn';
-  addBtn.textContent = 'Добавить';
+  const addBtn = createIconBtn(ICON_PLUS, 'Добавить');
   addBtn.onclick = () => addBufferRoundToCurrent(name);
   actions.appendChild(addBtn);
 
-  const delBtn = document.createElement('button');
-  delBtn.className = 'danger small-btn';
-  delBtn.textContent = 'Удалить';
+  const delBtn = createIconBtn(ICON_TRASH, 'Удалить', true);
   delBtn.onclick = () => deleteRoundFromBuffer(name);
   actions.appendChild(delBtn);
-  row.appendChild(actions);
+  top.appendChild(actions);
+  row.appendChild(top);
 
   return row;
 }
@@ -1266,9 +1348,7 @@ function render() {
 
   const toolbar = document.createElement('div');
   toolbar.className = 'scenario-toolbar';
-  const saveScenarioBtn = document.createElement('button');
-  saveScenarioBtn.className = 'small-btn';
-  saveScenarioBtn.textContent = 'Добавить сценарий в хранилище';
+  const saveScenarioBtn = createIconBtn(ICON_STACK_PUSH, 'Добавить сценарий в хранилище');
   saveScenarioBtn.onclick = () => saveCurrentAsScenario();
   toolbar.appendChild(saveScenarioBtn);
   app.appendChild(toolbar);
@@ -1280,9 +1360,14 @@ function render() {
     app.appendChild(empty);
   }
 
-  state.rounds.forEach((round, index) => {
-    app.appendChild(renderRoundCard(round, index));
-  });
+  if (state.rounds.length > 0) {
+    const list = document.createElement('div');
+    list.className = 'round-list';
+    state.rounds.forEach((round, index) => {
+      list.appendChild(renderRoundCard(round, index));
+    });
+    app.appendChild(list);
+  }
 
   const controls = document.createElement('div');
   controls.className = 'add-round-controls';
@@ -1385,17 +1470,48 @@ function renderBufferDropdown() {
   });
 }
 
-const ICON_FOLDER_PLUS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 11v4M10 13h4"/></svg>';
-const ICON_TRASH = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M10 11v6M14 11v6"/></svg>';
+function svgIcon(body) {
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + body + '</svg>';
+}
+const ICON_CUBE_PLUS = svgIcon('<path d="M20 12V7.5L12 3 4 7.5v9L12 21"/><path d="M4 7.5l8 4.5 8-4.5"/><path d="M12 12v9"/><path d="M16 18h6M19 15v6"/>');
+const ICON_TRASH = svgIcon('<path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M10 11v6M14 11v6"/>');
+const ICON_STACK_PUSH = svgIcon('<path d="M12 3v8"/><path d="M8.5 7.5L12 11l3.5-3.5"/><path d="M4 13l8 4 8-4"/><path d="M4 17l8 4 8-4"/>');
+const ICON_LOAD = svgIcon('<g transform="rotate(-90 12 12)"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/></g>');
+const ICON_PLUS = svgIcon('<path d="M12 5v14M5 12h14"/>');
+const ICON_CHEVRON = svgIcon('<path d="M9 5l7 7-7 7"/>');
 
 function createIconBtn(iconSvg, title, danger) {
   const btn = document.createElement('button');
-  btn.className = 'round-icon-btn' + (danger ? ' danger' : '');
+  btn.type = 'button';
+  btn.className = 'glass-btn' + (danger ? ' danger' : '');
   btn.innerHTML = iconSvg;
-  btn.title = title;
+  btn.dataset.tip = title;
   btn.setAttribute('aria-label', title);
   return btn;
 }
+
+// One shared tooltip on <body>, so cards and lists with overflow:hidden can't clip it.
+const glassTip = document.createElement('div');
+glassTip.className = 'glass-tip';
+document.body.appendChild(glassTip);
+function hideGlassTip() { glassTip.classList.remove('visible'); }
+document.addEventListener('pointerover', (e) => {
+  const btn = e.target.closest && e.target.closest('.glass-btn');
+  if (!btn || !btn.dataset.tip) return;
+  const rect = btn.getBoundingClientRect();
+  glassTip.textContent = btn.dataset.tip;
+  glassTip.style.setProperty('--glow', getComputedStyle(btn).getPropertyValue('--glow'));
+  glassTip.style.left = (rect.left + rect.width / 2) + 'px';
+  glassTip.style.top = (rect.top - 8) + 'px';
+  glassTip.style.marginTop = '-' + glassTip.offsetHeight + 'px';
+  glassTip.classList.add('visible');
+});
+document.addEventListener('pointerout', (e) => {
+  const btn = e.target.closest && e.target.closest('.glass-btn');
+  if (btn && !btn.contains(e.relatedTarget)) hideGlassTip();
+});
+document.addEventListener('pointerdown', hideGlassTip);
+window.addEventListener('scroll', hideGlassTip, true);
 
 function renderRoundCard(round, index) {
   const card = document.createElement('div');
@@ -1430,7 +1546,7 @@ function renderRoundCard(round, index) {
   const actions = document.createElement('div');
   actions.className = 'round-actions';
 
-  const saveToBufferBtn = createIconBtn(ICON_FOLDER_PLUS, 'Добавить в хранилище');
+  const saveToBufferBtn = createIconBtn(ICON_CUBE_PLUS, 'Добавить в хранилище');
   saveToBufferBtn.onclick = (e) => {
     e.stopPropagation();
     saveRoundToBuffer(round);
@@ -1452,7 +1568,7 @@ function renderRoundCard(round, index) {
 
   const chevron = document.createElement('span');
   chevron.className = 'chevron';
-  chevron.textContent = '›';
+  chevron.innerHTML = ICON_CHEVRON;
   head.appendChild(chevron);
 
   head.addEventListener('click', () => {
@@ -1752,13 +1868,9 @@ function loadImagePreview(relPath, imgEl) {
     .catch(() => {});
 }
 
-// ---------- Hero banner: glass cube balloons on strings over "РЕДАКТОР" ----------
-(function initHeroBalloons() {
-  const canvas = document.getElementById('heroCanvas');
-  const ctx = canvas.getContext('2d');
-  const headerEl = document.querySelector('header');
-  const DPR = Math.min(window.devicePixelRatio || 1, 2);
-  const SPRITE_DPR = Math.min(DPR, 1.5);
+// ---------- Cube art: glass cube sprites shared by the hero and the tab backdrop ----------
+const cubeArt = (function initCubeArt() {
+  const SPRITE_DPR = Math.min(window.devicePixelRatio || 1, 1.5);
   const HUES = [
     { glow: '#8f94dc', core: '#eef0ff', vivid: '#8a8cff', deep: '#3b3fc4' },
     { glow: '#72a9a4', core: '#e4f6f3', vivid: '#3fe0cc', deep: '#138a7c' },
@@ -1766,29 +1878,6 @@ function loadImagePreview(relPath, imgEl) {
     { glow: '#c9a870', core: '#fdf3de', vivid: '#ffc85a', deep: '#c77f10' },
     { glow: '#7f9ac8', core: '#e6eefc', vivid: '#62a8ff', deep: '#1f5fc4' },
   ];
-  let W = 0;
-  let H = 0;
-  let S = 1;
-  let bgPlain = null;
-  let textSharp = null;
-  let textBlur = null;
-  let textFrame = null;
-  let textRect = null;
-  let balloons = [];
-  let mouse = null;
-  let hold = null;
-
-  const noise = document.createElement('canvas');
-  noise.width = noise.height = 160;
-  const noiseCtx = noise.getContext('2d');
-  const noiseImg = noiseCtx.createImageData(160, 160);
-  for (let i = 0; i < noiseImg.data.length; i += 4) {
-    const v = Math.random() * 255;
-    noiseImg.data[i] = noiseImg.data[i + 1] = noiseImg.data[i + 2] = v;
-    noiseImg.data[i + 3] = 255;
-  }
-  noiseCtx.putImageData(noiseImg, 0, 0);
-  const noisePattern = ctx.createPattern(noise, 'repeat');
 
   function rgba(hex, a) {
     const n = parseInt(hex.slice(1), 16);
@@ -1859,7 +1948,7 @@ function loadImagePreview(relPath, imgEl) {
   }
 
   // Glass cube in three-quarter view, pre-rendered once (idle + lit) so a frame is just a few drawImage calls.
-  function makeSprite(r, hue, lit, blur, yaw) {
+  function makeSprite(r, hue, lit, blur, yaw, knot = true) {
     const s = r * 0.78;
     const cosY = Math.cos(yaw);
     const sinY = Math.sin(yaw);
@@ -2000,13 +2089,15 @@ function loadImagePreview(relPath, imgEl) {
     c.fillRect(hx - r, hy - r, r * 2, r * 2);
     c.restore();
 
-    c.beginPath();
-    c.moveTo(kx - r * 0.11, knotY);
-    c.lineTo(kx + r * 0.11, knotY);
-    c.lineTo(kx, knotTop - r * 0.12);
-    c.closePath();
-    c.fillStyle = lit ? hue.vivid : 'rgba(255,255,255,0.22)';
-    c.fill();
+    if (knot) {
+      c.beginPath();
+      c.moveTo(kx - r * 0.11, knotY);
+      c.lineTo(kx + r * 0.11, knotY);
+      c.lineTo(kx, knotTop - r * 0.12);
+      c.closePath();
+      c.fillStyle = lit ? hue.vivid : 'rgba(255,255,255,0.22)';
+      c.fill();
+    }
 
     return {
       canvas: cv,
@@ -2014,11 +2105,48 @@ function loadImagePreview(relPath, imgEl) {
       h: ht,
       kx,
       ky: knotY,
+      cx: ox + (minX + maxX) / 2,
+      cy: oy + (minY + maxY) / 2,
       bodyOff: knotY - (oy + (minY + maxY) / 2),
       outline: outline.map((p) => ({ x: p.x - kx, y: p.y - knotY })),
       radius,
     };
   }
+
+  return { HUES, rgba, rand, roundPoly, makeSprite };
+})();
+
+// ---------- Hero banner: glass cube balloons on strings over "РЕДАКТОР" ----------
+const heroBalloons = (function initHeroBalloons() {
+  const canvas = document.getElementById('heroCanvas');
+  const ctx = canvas.getContext('2d');
+  const headerEl = document.querySelector('header');
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const { HUES, rgba, rand, roundPoly, makeSprite } = cubeArt;
+  let W = 0;
+  let H = 0;
+  let S = 1;
+  let bgPlain = null;
+  let textSharp = null;
+  let textBlur = null;
+  let textFrame = null;
+  let textRect = null;
+  let balloons = [];
+  let mouse = null;
+  let hold = null;
+  let wave = null; // a never-released "hold" from the top centre, started once a project is opened
+
+  const noise = document.createElement('canvas');
+  noise.width = noise.height = 160;
+  const noiseCtx = noise.getContext('2d');
+  const noiseImg = noiseCtx.createImageData(160, 160);
+  for (let i = 0; i < noiseImg.data.length; i += 4) {
+    const v = Math.random() * 255;
+    noiseImg.data[i] = noiseImg.data[i + 1] = noiseImg.data[i + 2] = v;
+    noiseImg.data[i + 3] = 255;
+  }
+  noiseCtx.putImageData(noiseImg, 0, 0);
+  const noisePattern = ctx.createPattern(noise, 'repeat');
 
   function drawWord(c, blurPx) {
     const size = Math.max(48, Math.min(160, W * 0.11));
@@ -2091,8 +2219,12 @@ function loadImagePreview(relPath, imgEl) {
     textFrame = makeLayer();
 
     S = Math.max(0.7, Math.min(1.8, Math.sqrt(W * H) / 560));
+    // On resize keep the existing balloons (and their lit state) and only re-place them.
+    if (balloons.length) {
+      balloons.forEach(place);
+      return;
+    }
     const count = Math.max(18, Math.min(60, Math.round(W * H / 14000)));
-    balloons = [];
     for (let k = 0; k < count; k++) {
       const z = Math.random();
       const r = (9 + 19 * z) * S;
@@ -2101,16 +2233,11 @@ function loadImagePreview(relPath, imgEl) {
       const yaw = (Math.random() < 0.5 ? -1 : 1) * rand(0.45, 0.95);
       const dark = makeSprite(r, hue, false, blur, yaw);
       const light = makeSprite(r, hue, true, blur, yaw);
-      const x = rand(-0.04 * W, 1.04 * W);
-      const y = rand(0.1 * H, 0.8 * H);
-      const ax = x + rand(-0.1, 0.1) * W;
-      const ay = H + 30;
-      const ky = y + dark.bodyOff;
-      const th0 = Math.atan2(x - ax, ay - ky);
+      const fx = rand(-0.04, 1.04);
       balloons.push({
-        z, r, ax, ay, th0, th: th0, om: 0, kx: x, ky, lit: 0,
+        z, r, fx, fy: rand(0.1, 0.8), fax: fx + rand(-0.1, 0.1),
+        th0: 0, th: 0, om: 0, lit: 0,
         alpha: 0.4 + 0.6 * z,
-        L: Math.hypot(x - ax, ay - ky),
         swayA: rand(0.012, 0.03), swayW: rand(0.0004, 0.0009), ph: rand(0, 6.28),
         bobA: rand(1.5, 4) * S, bobW: rand(0.001, 0.002), ph2: rand(0, 6.28),
         pulseW: rand(0.0002, 0.0005), ph3: rand(0, 6.28),
@@ -2121,6 +2248,21 @@ function loadImagePreview(relPath, imgEl) {
       });
     }
     balloons.sort((a, b) => a.z - b.z);
+    balloons.forEach(place);
+  }
+
+  // Positions are stored as fractions of the hero size, so a resize just re-anchors the strings.
+  function place(b) {
+    const x = b.fx * W;
+    const ky = b.fy * H + b.dark.bodyOff;
+    const swing = b.th - b.th0;
+    b.ax = b.fax * W;
+    b.ay = H + 30;
+    b.th0 = Math.atan2(x - b.ax, b.ay - ky);
+    b.th = b.th0 + swing;
+    b.L = Math.hypot(x - b.ax, b.ay - ky);
+    b.kx = x;
+    b.ky = ky;
   }
 
   let last = performance.now();
@@ -2132,6 +2274,11 @@ function loadImagePreview(relPath, imgEl) {
 
     const R = 130 * S;
     if (hold) hold.rad += 10 * S * dt;
+    if (wave) {
+      wave.x = W / 2;
+      wave.rad = Math.min(wave.rad + 10 * S * dt, Math.hypot(W, H) + 100 * S);
+    }
+    const presses = [hold, wave].filter(Boolean);
 
     for (const b of balloons) {
       const sway = b.swayA * Math.sin(t * b.swayW + b.ph);
@@ -2147,12 +2294,12 @@ function loadImagePreview(relPath, imgEl) {
           litTarget = Math.max(litTarget, Math.min(1, f * 1.6));
         }
       }
-      if (hold) {
-        const hx = b.kx - hold.x;
-        const hd = Math.hypot(hx, bodyY - hold.y);
-        if (hd < hold.rad) {
+      for (const p of presses) {
+        const hx = b.kx - p.x;
+        const hd = Math.hypot(hx, bodyY - p.y);
+        if (hd < p.rad) {
           litTarget = 1;
-          if (hd > hold.rad - 60 * S) acc += (hx >= 0 ? 1 : -1) * 0.0012;
+          if (hd > p.rad - 60 * S) acc += (hx >= 0 ? 1 : -1) * 0.0012;
         }
       }
       b.om += acc * dt;
@@ -2239,16 +2386,118 @@ function loadImagePreview(relPath, imgEl) {
   sizeHero();
   build();
   window.addEventListener('resize', sizeHero);
+  new ResizeObserver(sizeHero).observe(headerEl);
   let rebuildTimer = null;
   new ResizeObserver(() => {
     clearTimeout(rebuildTimer);
     rebuildTimer = setTimeout(build, 150);
   }).observe(heroBanner);
   requestAnimationFrame(draw);
+
+  return {
+    lightFromTop() {
+      if (!wave) wave = { x: W / 2, y: 0, rad: 0 };
+    },
+  };
+})();
+
+// ---------- Tab backdrop: blurred cubes drifting behind every tab, sharpening under the cursor ----------
+(function initTabBackdrop() {
+  const { HUES, rand, makeSprite } = cubeArt;
+  const canvas = tabBackdrop;
+  const ctx = canvas.getContext('2d');
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  let W = 0;
+  let H = 0;
+  let mouse = null;
+
+  const cubes = [];
+  for (let k = 0; k < 16; k++) {
+    // Keep the candidate farthest from the cubes already placed, so they spread out instead of clumping.
+    let best = null;
+    for (let tries = 0; tries < 12; tries++) {
+      const p = { fx: rand(0.03, 0.97), fy: rand(0.14, 0.95) };
+      const gap = Math.min(Infinity, ...cubes.map((c) => Math.hypot((c.fx - p.fx) * 1.6, c.fy - p.fy)));
+      if (!best || gap > best.gap) best = { ...p, gap };
+    }
+    const r = rand(12, 26);
+    const hue = HUES[Math.floor(Math.random() * HUES.length)];
+    const yaw = (Math.random() < 0.5 ? -1 : 1) * rand(0.45, 0.95);
+    cubes.push({
+      fx: best.fx, fy: best.fy, r,
+      soft: makeSprite(r, hue, true, rand(5, 8), yaw, false),
+      sharp: makeSprite(r, hue, true, 0, yaw, false),
+      rest: rand(0.45, 0.75),
+      focus: 0,
+      driftX: rand(4, 10), wx: rand(0.00025, 0.0005), ph: rand(0, 6.28),
+      driftY: rand(3, 8), wy: rand(0.0004, 0.0009), ph2: rand(0, 6.28),
+      swayA: rand(0.03, 0.07), swayW: rand(0.0004, 0.0009), ph3: rand(0, 6.28),
+    });
+  }
+
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  function drawSprite(sprite) {
+    ctx.drawImage(sprite.canvas, -sprite.cx, -sprite.cy, sprite.w, sprite.h);
+  }
+
+  let last = performance.now();
+  function draw(t) {
+    requestAnimationFrame(draw);
+    const dt = Math.min(2.5, (t - last) / 16.67);
+    last = t;
+    if (canvas.style.display === 'none') return;
+
+    let hovered = null;
+    let hoveredDist = Infinity;
+    for (const c of cubes) {
+      c.x = c.fx * W + Math.sin(t * c.wx + c.ph) * c.driftX;
+      c.y = c.fy * H + Math.sin(t * c.wy + c.ph2) * c.driftY;
+      c.angle = Math.sin(t * c.swayW + c.ph3) * c.swayA;
+      if (mouse) {
+        const d = Math.hypot(c.x - mouse.x, c.y - mouse.y);
+        if (d < c.r * 1.5 && d < hoveredDist) {
+          hovered = c;
+          hoveredDist = d;
+        }
+      }
+    }
+
+    ctx.clearRect(0, 0, W, H);
+    for (const c of cubes) {
+      const target = c === hovered ? 1 : 0;
+      c.focus += (target - c.focus) * Math.min(1, (target > c.focus ? 0.18 : 0.07) * dt);
+      const scale = 1 + 0.12 * c.focus;
+      ctx.save();
+      ctx.translate(c.x, c.y);
+      ctx.rotate(c.angle);
+      ctx.scale(scale, scale);
+      if (c.focus < 0.99) {
+        ctx.globalAlpha = c.rest * (1 - c.focus);
+        drawSprite(c.soft);
+      }
+      if (c.focus > 0.01) {
+        ctx.globalAlpha = c.focus;
+        drawSprite(c.sharp);
+      }
+      ctx.restore();
+    }
+  }
+
+  window.addEventListener('pointermove', (e) => { mouse = { x: e.clientX, y: e.clientY }; });
+  window.addEventListener('pointerout', (e) => { if (!e.relatedTarget) mouse = null; });
+  window.addEventListener('resize', resize);
+  resize();
+  requestAnimationFrame(draw);
 })();
 
 // ---------- Wire up header buttons ----------
-btnOpen.onclick = pickFolder;
 btnSave.onclick = saveRounds;
 initialHint.onclick = pickFolder;
 initialHint.addEventListener('pointerdown', (e) => e.stopPropagation());
