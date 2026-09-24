@@ -1,0 +1,36 @@
+{
+  "type": "Question",
+  "name": "Шедевр или мазня",
+  "questions": [
+    {
+      "image": "assets/questions-images/Im1.jpg"
+    },
+    {
+      "image": "assets/questions-images/Im2.jpg"
+    },
+    {
+      "image": "assets/questions-images/Im3.jpg"
+    },
+    {
+      "image": "assets/questions-images/Im4.jpg"
+    },
+    {
+      "image": "assets/questions-images/Im5.jpg"
+    },
+    {
+      "image": "assets/questions-images/Im6.jpg"
+    },
+    {
+      "image": "assets/questions-images/Im7.jpg"
+    },
+    {
+      "image": "assets/questions-images/Im8.jpg"
+    },
+    {
+      "image": "assets/questions-images/Im9.jpg"
+    },
+    {
+      "image": "assets/questions-images/Im10.jpg"
+    }
+  ]
+}

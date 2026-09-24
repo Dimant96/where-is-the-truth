@@ -1,0 +1,219 @@
+[
+  {
+    "type": "Question",
+    "name": "Шедевр или мазня",
+    "questions": [
+      {
+        "image": "assets/questions-images/Im1.jpg"
+      },
+      {
+        "image": "assets/questions-images/Im2.jpg"
+      },
+      {
+        "image": "assets/questions-images/Im3.jpg"
+      },
+      {
+        "image": "assets/questions-images/Im4.jpg"
+      },
+      {
+        "image": "assets/questions-images/Im5.jpg"
+      },
+      {
+        "image": "assets/questions-images/Im6.jpg"
+      },
+      {
+        "image": "assets/questions-images/Im7.jpg"
+      },
+      {
+        "image": "assets/questions-images/Im8.jpg"
+      },
+      {
+        "image": "assets/questions-images/Im9.jpg"
+      },
+      {
+        "image": "assets/questions-images/Im10.jpg"
+      }
+    ]
+  },
+  {
+    "type": "Question",
+    "name": "Шака-Шалама",
+    "questions": [
+      {
+        "text": "Кеджи Нач"
+      },
+      {
+        "text": "Имт Кку"
+      },
+      {
+        "text": "Сирала Везуега"
+      },
+      {
+        "text": "Алкони Слета"
+      },
+      {
+        "text": "Тикани Гурдажид"
+      },
+      {
+        "text": "Дрейна Новорми"
+      },
+      {
+        "text": "Енела Шлыеваам"
+      },
+      {
+        "text": "Нетибедк Четкамбэбр"
+      },
+      {
+        "text": "Яистасана Вовочкало"
+      },
+      {
+        "text": "Нардоль Гравешенгерц"
+      }
+    ]
+  },
+  {
+    "type": "Question with timer",
+    "name": "Слово наоборот",
+    "timer": 10000,
+    "questions": [
+      {
+        "text": "Мясник"
+      },
+      {
+        "text": "Щипцы"
+      },
+      {
+        "text": "Чукча"
+      },
+      {
+        "text": "Цыган"
+      },
+      {
+        "text": "Ремонт"
+      },
+      {
+        "text": "Ступор"
+      },
+      {
+        "text": "Купидон"
+      },
+      {
+        "text": "Локация"
+      },
+      {
+        "text": "Трамвай"
+      },
+      {
+        "text": "Женщина"
+      },
+      {
+        "text": "Сосулька"
+      },
+      {
+        "text": "Яичница"
+      },
+      {
+        "text": "Институт"
+      },
+      {
+        "text": "Будильник"
+      },
+      {
+        "text": "Дискотека"
+      },
+      {
+        "text": "Подписчик"
+      },
+      {
+        "text": "Трубочисты"
+      },
+      {
+        "text": "Циферблат"
+      },
+      {
+        "text": "Провокация"
+      },
+      {
+        "text": "Популярность"
+      }
+    ]
+  },
+  {
+    "type": "Timer",
+    "name": "Вопросы/Ответы",
+    "timer": 120000
+  },
+  {
+    "type": "Question with timer",
+    "name": "Время выпЕвать",
+    "timer": 10000,
+    "questions": [
+      {
+        "text": "Любовь"
+      },
+      {
+        "text": "Девочка"
+      },
+      {
+        "text": "Ты"
+      },
+      {
+        "text": "Солнце"
+      },
+      {
+        "text": "<Имя>"
+      },
+      {
+        "text": "Море"
+      },
+      {
+        "text": "Друг"
+      },
+      {
+        "text": "Сердце"
+      },
+      {
+        "text": "Туман"
+      },
+      {
+        "text": "Детство"
+      },
+      {
+        "text": "Ночь"
+      },
+      {
+        "text": "Мир"
+      },
+      {
+        "text": "Птица"
+      },
+      {
+        "text": "Небо"
+      },
+      {
+        "text": "Дом"
+      },
+      {
+        "text": "Кровь"
+      },
+      {
+        "text": "Душа"
+      }
+    ]
+  },
+  {
+    "type": "Timer",
+    "name": "Что-то общее",
+    "timer": 150000
+  },
+  {
+    "type": "Timer",
+    "name": "Натяни",
+    "timer": 180000
+  },
+  {
+    "type": "Timer",
+    "name": "Ваша версия",
+    "timer": 300000
+  }
+]
