@@ -6,16 +6,21 @@
 <title>Редактор этапов — where-is-the-truth</title>
 <style>
   :root {
-    --bg: #f4f5f7;
-    --card-bg: #ffffff;
-    --border: #dde1e6;
-    --text: #1f2430;
-    --muted: #6b7280;
-    --accent: #4f46e5;
-    --accent-hover: #4338ca;
-    --danger: #dc2626;
-    --danger-bg: #fef2f2;
-    --success: #16a34a;
+    --bg: #1c1d21;
+    --card-bg: #2a2b30;
+    --field-bg: #212226;
+    --border: #3d3e44;
+    --surface-2: #35363c;
+    --surface-3: #40414a;
+    --text: #e8e9ec;
+    --muted: #9a9ba5;
+    --accent: #6366f1;
+    --accent-hover: #7c76f5;
+    --danger: #f36a6a;
+    --danger-bg: #3a2225;
+    --danger-border: #5a2f2f;
+    --success: #4ade80;
+    --hint-bg: #23263d;
   }
   * { box-sizing: border-box; }
   body {
@@ -40,21 +45,31 @@
     font-size: 18px;
     margin: 0 16px 0 0;
     white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .cube-mark {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    background: linear-gradient(135deg, #AFA9EC 0%, #7F77DD 50%, #534AB7 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.45), inset 0 -1px 1px rgba(0,0,0,0.4);
+    flex-shrink: 0;
   }
   button {
     font: inherit;
     cursor: pointer;
-    border: 1px solid var(--border);
-    background: var(--card-bg);
+    border: 1px solid transparent;
+    background: var(--surface-2);
     color: var(--text);
     border-radius: 8px;
     padding: 8px 14px;
   }
-  button:hover { background: #f0f1f5; }
+  button:hover { background: var(--surface-3); }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
   button.primary {
     background: var(--accent);
-    border-color: var(--accent);
     color: #fff;
   }
   button.primary:hover { background: var(--accent-hover); }
@@ -66,7 +81,7 @@
     color: var(--muted);
     white-space: nowrap;
   }
-  #status.dirty { color: #b45309; }
+  #status.dirty { color: #f59e0b; }
   #status.saved { color: var(--success); }
   .tabs {
     display: flex;
@@ -79,7 +94,7 @@
     font-weight: 500;
   }
   .tab-btn:hover {
-    background: #f0f1f5;
+    background: var(--surface-3);
     color: var(--text);
   }
   .tab-btn.active {
@@ -125,19 +140,54 @@
     min-width: 0;
     max-width: 760px;
   }
-  .hint {
-    background: #eef2ff;
-    border: 1px solid #c7d2fe;
-    border-radius: 10px;
-    padding: 14px 16px;
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 20px;
+  .hero-banner {
+    position: relative;
+    overflow: hidden;
+    background: #08080a;
+    user-select: none;
+    touch-action: none;
+  }
+  .hero-canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+  }
+  .hero-vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.72) 100%);
+  }
+  .hero-cta {
+    position: absolute;
+    left: 50%;
+    bottom: 56px;
+    transform: translateX(-50%);
+    padding: 0 0 7px;
+    border: none;
+    border-bottom: 2px solid #f6f6f8;
+    border-radius: 0;
+    background: transparent;
+    color: #f6f6f8;
+    font: 600 13px/1 -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+  .hero-cta:hover { background: transparent; opacity: 0.75; }
+  .error.hero-error {
+    position: absolute;
+    left: 50%;
+    bottom: 100px;
+    transform: translateX(-50%);
+    width: calc(100% - 32px);
+    max-width: 520px;
+    margin: 0;
   }
   .scenarios-panel:empty { display: none; }
   .scenarios-box {
     background: var(--card-bg);
-    border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
   }
@@ -190,7 +240,6 @@
   }
   .design-sections {
     background: var(--card-bg);
-    border: 1px solid var(--border);
     border-radius: 12px;
     overflow: hidden;
   }
@@ -213,7 +262,6 @@
   }
   .sound-slot {
     background: var(--card-bg);
-    border: 1px solid var(--border);
     border-radius: 12px;
     padding: 14px 16px;
     margin-bottom: 14px;
@@ -236,7 +284,7 @@
   }
   .error {
     background: var(--danger-bg);
-    border: 1px solid #fecaca;
+    border: 1px solid var(--danger-border);
     color: var(--danger);
     border-radius: 10px;
     padding: 14px 16px;
@@ -246,12 +294,11 @@
   }
   .round-card {
     background: var(--card-bg);
-    border: 1px solid var(--border);
     border-radius: 12px;
     margin-bottom: 10px;
     overflow: hidden;
   }
-  .round-card.drag-over { border-color: var(--accent); }
+  .round-card.drag-over { outline: 2px solid var(--accent); outline-offset: -2px; }
   .round-head {
     display: flex;
     align-items: center;
@@ -279,25 +326,30 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .round-delete-btn {
+  .round-actions {
+    display: flex;
+    gap: 2px;
+    opacity: 0;
+    transition: opacity .15s;
+    flex-shrink: 0;
+  }
+  .round-head:hover .round-actions { opacity: 1; }
+  .round-icon-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
+    padding: 0;
     border: none;
     background: transparent;
     color: var(--muted);
-    border-radius: 999px;
-    font-size: 16px;
-    line-height: 1;
+    border-radius: 7px;
     cursor: pointer;
     flex-shrink: 0;
   }
-  .round-delete-btn:hover {
-    color: var(--danger);
-    background: var(--danger-bg);
-  }
+  .round-icon-btn:hover { background: var(--surface-3); color: var(--text); }
+  .round-icon-btn.danger:hover { background: var(--danger-bg); color: var(--danger); }
   .chevron { color: var(--muted); transition: transform .15s; }
   .round-card.expanded .chevron { transform: rotate(90deg); }
   .round-body {
@@ -317,9 +369,9 @@
     font: inherit;
     width: 100%;
     padding: 8px 10px;
-    border: 1px solid var(--border);
+    border: 1px solid transparent;
     border-radius: 8px;
-    background: #fff;
+    background: var(--field-bg);
     color: var(--text);
   }
   textarea { resize: vertical; min-height: 60px; }
@@ -360,7 +412,7 @@
     color: var(--muted);
     cursor: pointer;
   }
-  .image-drop:hover { border-color: var(--accent); background: #eef2ff; }
+  .image-drop:hover { border-color: var(--accent); background: var(--hint-bg); }
   .image-preview {
     display: flex;
     align-items: center;
@@ -392,6 +444,7 @@
     width: 100%;
     padding: 12px;
     border-style: dashed;
+    border-color: var(--border);
     color: var(--muted);
   }
   .add-round-controls {
@@ -412,9 +465,8 @@
     min-width: 240px;
     max-width: 320px;
     background: var(--card-bg);
-    border: 1px solid var(--border);
     border-radius: 10px;
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
     max-height: 260px;
     overflow-y: auto;
     z-index: 20;
@@ -435,7 +487,7 @@
     cursor: pointer;
   }
   .buffer-dropdown-row:first-child { border-top: none; }
-  .buffer-dropdown-row:hover { background: #f0f1f5; }
+  .buffer-dropdown-row:hover { background: var(--surface-3); }
   .buffer-dropdown-name {
     flex: 1;
     min-width: 0;
@@ -450,6 +502,7 @@
     border-radius: 999px;
     width: 22px;
     height: 22px;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -470,7 +523,7 @@
 </head>
 <body>
 <header>
-  <h1>Редактор <small style="font-size:11px;color:#9ca3af;font-weight:400">build 10</small></h1>
+  <h1><span class="cube-mark" aria-hidden="true"></span>Редактор <small style="font-size:11px;color:var(--muted);font-weight:400">build 10</small></h1>
   <button id="btnOpen">Открыть папку проекта…</button>
   <button id="btnReopen" style="display:none">Открыть ту же папку снова</button>
   <button id="btnSave" class="primary" disabled>Сохранить</button>
@@ -480,9 +533,11 @@
   </nav>
   <span id="status"></span>
 </header>
-<div id="initialHint" class="hint" style="margin:24px 16px;">
-  Нажмите «Открыть папку проекта» и выберите папку <b>where-is-the-truth</b> на своём компьютере.
-  Работает только в <b>Chrome</b> или <b>Edge</b>.
+<div id="heroBanner" class="hero-banner">
+  <canvas id="heroCanvas" class="hero-canvas" role="img" aria-label="Редактор"></canvas>
+  <div class="hero-vignette"></div>
+  <div id="heroError" class="error hero-error" style="display:none"></div>
+  <button id="initialHint" class="hero-cta" type="button">Откройте папку проекта</button>
 </div>
 <div id="tabPanelDesign" class="layout" style="display:none">
   <aside class="sidebar">
@@ -539,12 +594,15 @@ const layoutEl = document.getElementById('tabPanelScenarios');
 const designPanel = document.getElementById('tabPanelDesign');
 const designSectionsList = document.getElementById('designSectionsList');
 const designSectionContent = document.getElementById('designSectionContent');
+const heroBanner = document.getElementById('heroBanner');
+const heroError = document.getElementById('heroError');
 
 function setActiveTab(tab) {
   state.activeTab = tab;
   tabButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === tab));
   layoutEl.style.display = tab === 'scenarios' ? '' : 'none';
   designPanel.style.display = tab === 'design' ? '' : 'none';
+  heroBanner.style.display = tab ? 'none' : '';
   if (tab === 'design' && !activeDesignSection) {
     setActiveDesignSection(DESIGN_SECTIONS[0].id);
   }
@@ -721,6 +779,8 @@ function markSaved() {
 }
 function showError(message) {
   app.innerHTML = '<div class="error">' + escapeHtml(message) + '</div>';
+  heroError.textContent = message;
+  heroError.style.display = '';
 }
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({
@@ -802,6 +862,7 @@ async function loadFromRoot(rootHandle) {
     btnOpen.style.display = 'none';
     btnReopen.style.display = 'none';
     initialHint.style.display = 'none';
+    heroError.style.display = 'none';
     tabsBar.style.display = '';
     render();
     await loadScenarioList();
@@ -1324,6 +1385,18 @@ function renderBufferDropdown() {
   });
 }
 
+const ICON_FOLDER_PLUS = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M12 11v4M10 13h4"/></svg>';
+const ICON_TRASH = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M10 11v6M14 11v6"/></svg>';
+
+function createIconBtn(iconSvg, title, danger) {
+  const btn = document.createElement('button');
+  btn.className = 'round-icon-btn' + (danger ? ' danger' : '');
+  btn.innerHTML = iconSvg;
+  btn.title = title;
+  btn.setAttribute('aria-label', title);
+  return btn;
+}
+
 function renderRoundCard(round, index) {
   const card = document.createElement('div');
   card.className = 'round-card' + (state.expanded.has(index) ? ' expanded' : '');
@@ -1354,19 +1427,17 @@ function renderRoundCard(round, index) {
   name.textContent = round.name || '(без названия)';
   head.appendChild(name);
 
-  const saveToBufferBtn = document.createElement('button');
-  saveToBufferBtn.className = 'small-btn';
-  saveToBufferBtn.textContent = 'Добавить в хранилище';
+  const actions = document.createElement('div');
+  actions.className = 'round-actions';
+
+  const saveToBufferBtn = createIconBtn(ICON_FOLDER_PLUS, 'Добавить в хранилище');
   saveToBufferBtn.onclick = (e) => {
     e.stopPropagation();
     saveRoundToBuffer(round);
   };
-  head.appendChild(saveToBufferBtn);
+  actions.appendChild(saveToBufferBtn);
 
-  const deleteBtn = document.createElement('button');
-  deleteBtn.className = 'round-delete-btn';
-  deleteBtn.textContent = '✕';
-  deleteBtn.title = 'Удалить этап';
+  const deleteBtn = createIconBtn(ICON_TRASH, 'Удалить этап', true);
   deleteBtn.onclick = (e) => {
     e.stopPropagation();
     if (!confirm('Удалить этап "' + (round.name || '') + '"?')) return;
@@ -1375,7 +1446,9 @@ function renderRoundCard(round, index) {
     markDirty();
     render();
   };
-  head.appendChild(deleteBtn);
+  actions.appendChild(deleteBtn);
+
+  head.appendChild(actions);
 
   const chevron = document.createElement('span');
   chevron.className = 'chevron';
@@ -1679,9 +1752,506 @@ function loadImagePreview(relPath, imgEl) {
     .catch(() => {});
 }
 
+// ---------- Hero banner: glass cube balloons on strings over "РЕДАКТОР" ----------
+(function initHeroBalloons() {
+  const canvas = document.getElementById('heroCanvas');
+  const ctx = canvas.getContext('2d');
+  const headerEl = document.querySelector('header');
+  const DPR = Math.min(window.devicePixelRatio || 1, 2);
+  const SPRITE_DPR = Math.min(DPR, 1.5);
+  const HUES = [
+    { glow: '#8f94dc', core: '#eef0ff', vivid: '#8a8cff', deep: '#3b3fc4' },
+    { glow: '#72a9a4', core: '#e4f6f3', vivid: '#3fe0cc', deep: '#138a7c' },
+    { glow: '#c9909a', core: '#fdebee', vivid: '#ff7c9c', deep: '#c2335a' },
+    { glow: '#c9a870', core: '#fdf3de', vivid: '#ffc85a', deep: '#c77f10' },
+    { glow: '#7f9ac8', core: '#e6eefc', vivid: '#62a8ff', deep: '#1f5fc4' },
+  ];
+  let W = 0;
+  let H = 0;
+  let S = 1;
+  let bgPlain = null;
+  let textSharp = null;
+  let textBlur = null;
+  let textFrame = null;
+  let textRect = null;
+  let balloons = [];
+  let mouse = null;
+  let hold = null;
+
+  const noise = document.createElement('canvas');
+  noise.width = noise.height = 160;
+  const noiseCtx = noise.getContext('2d');
+  const noiseImg = noiseCtx.createImageData(160, 160);
+  for (let i = 0; i < noiseImg.data.length; i += 4) {
+    const v = Math.random() * 255;
+    noiseImg.data[i] = noiseImg.data[i + 1] = noiseImg.data[i + 2] = v;
+    noiseImg.data[i + 3] = 255;
+  }
+  noiseCtx.putImageData(noiseImg, 0, 0);
+  const noisePattern = ctx.createPattern(noise, 'repeat');
+
+  function rgba(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+  }
+
+  function mix(hexA, hexB, t) {
+    const a = parseInt(hexA.slice(1), 16);
+    const b = parseInt(hexB.slice(1), 16);
+    const channel = (shift) => {
+      const x = (a >> shift) & 255;
+      const y = (b >> shift) & 255;
+      return Math.round(x + (y - x) * t).toString(16).padStart(2, '0');
+    };
+    return '#' + channel(16) + channel(8) + channel(0);
+  }
+
+  function rand(a, b) {
+    return a + Math.random() * (b - a);
+  }
+
+  const FACES = [
+    [[0, 1, 0], [[-1, 1, -1], [1, 1, -1], [1, 1, 1], [-1, 1, 1]]],
+    [[0, -1, 0], [[-1, -1, -1], [-1, -1, 1], [1, -1, 1], [1, -1, -1]]],
+    [[1, 0, 0], [[1, -1, -1], [1, -1, 1], [1, 1, 1], [1, 1, -1]]],
+    [[-1, 0, 0], [[-1, -1, -1], [-1, 1, -1], [-1, 1, 1], [-1, -1, 1]]],
+    [[0, 0, 1], [[-1, -1, 1], [-1, 1, 1], [1, 1, 1], [1, -1, 1]]],
+    [[0, 0, -1], [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1]]],
+  ];
+  const LIGHT = (() => {
+    const v = [-0.45, 0.75, 0.5];
+    const len = Math.hypot(v[0], v[1], v[2]);
+    return v.map((a) => a / len);
+  })();
+  const PITCH = 0.42;
+
+  function hull(points) {
+    const pts = points.slice().sort((a, b) => a.x - b.x || a.y - b.y);
+    const cross = (o, a, b) => (a.x - o.x) * (b.y - o.y) - (a.y - o.y) * (b.x - o.x);
+    const lower = [];
+    const upper = [];
+    for (const p of pts) {
+      while (lower.length >= 2 && cross(lower[lower.length - 2], lower[lower.length - 1], p) <= 0) lower.pop();
+      lower.push(p);
+    }
+    for (let i = pts.length - 1; i >= 0; i--) {
+      const p = pts[i];
+      while (upper.length >= 2 && cross(upper[upper.length - 2], upper[upper.length - 1], p) <= 0) upper.pop();
+      upper.push(p);
+    }
+    upper.pop();
+    lower.pop();
+    return lower.concat(upper);
+  }
+
+  function roundPoly(c, pts, radius) {
+    const n = pts.length;
+    const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+    c.beginPath();
+    c.moveTo((pts[n - 1].x + pts[0].x) / 2, (pts[n - 1].y + pts[0].y) / 2);
+    for (let i = 0; i < n; i++) {
+      const p = pts[i];
+      const next = pts[(i + 1) % n];
+      const prev = pts[(i - 1 + n) % n];
+      c.arcTo(p.x, p.y, next.x, next.y, Math.min(radius, 0.45 * Math.min(dist(prev, p), dist(p, next))));
+    }
+    c.closePath();
+  }
+
+  // Glass cube in three-quarter view, pre-rendered once (idle + lit) so a frame is just a few drawImage calls.
+  function makeSprite(r, hue, lit, blur, yaw) {
+    const s = r * 0.78;
+    const cosY = Math.cos(yaw);
+    const sinY = Math.sin(yaw);
+    const cosP = Math.cos(PITCH);
+    const sinP = Math.sin(PITCH);
+    const rotate = (x, y, z) => {
+      const x1 = x * cosY + z * sinY;
+      const z1 = -x * sinY + z * cosY;
+      return { x: x1, y: y * cosP - z1 * sinP, z: y * sinP + z1 * cosP };
+    };
+    const project = (v) => {
+      const p = rotate(v[0] * s, v[1] * s, v[2] * s);
+      return { x: p.x, y: -p.y };
+    };
+
+    const verts = [];
+    for (const a of [-1, 1]) for (const b of [-1, 1]) for (const d of [-1, 1]) verts.push(project([a, b, d]));
+    const xs = verts.map((p) => p.x);
+    const ys = verts.map((p) => p.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+
+    const pad = Math.ceil(r * (lit ? 1 : 0.35) + blur * 3 + 6);
+    const ox = pad - minX;
+    const oy = pad - minY;
+    const w = Math.ceil(maxX - minX + 2 * pad);
+    const bottom = verts.reduce((a, p) => (p.y > a.y ? p : a), verts[0]);
+    const kx = bottom.x + ox;
+    const knotTop = oy + maxY;
+    const knotY = knotTop + r * 0.14;
+    const ht = Math.ceil(knotY + pad);
+    const shift = (p) => ({ x: p.x + ox, y: p.y + oy });
+    const outline = hull(verts).map(shift);
+    const radius = r * 0.2;
+
+    const faces = [];
+    for (const [normal, corners] of FACES) {
+      const n = rotate(normal[0], normal[1], normal[2]);
+      if (n.z <= 0.001) continue;
+      faces.push({
+        up: n.y,
+        light: Math.max(0, n.x * LIGHT[0] + n.y * LIGHT[1] + n.z * LIGHT[2]),
+        keys: corners.map((v) => v.join()),
+        pts: corners.map((v) => shift(project(v))),
+      });
+    }
+
+    const cv = document.createElement('canvas');
+    cv.width = Math.ceil(w * SPRITE_DPR);
+    cv.height = Math.ceil(ht * SPRITE_DPR);
+    const c = cv.getContext('2d');
+    c.setTransform(SPRITE_DPR, 0, 0, SPRITE_DPR, 0, 0);
+    if (blur > 0.05) c.filter = 'blur(' + blur.toFixed(2) + 'px)';
+
+    if (lit) {
+      for (const [spread, alpha] of [[1.5, 0.55], [0.5, 0.65]]) {
+        c.save();
+        c.shadowColor = rgba(hue.vivid, 1);
+        c.shadowBlur = r * spread;
+        roundPoly(c, outline, radius);
+        c.fillStyle = rgba(hue.vivid, alpha);
+        c.fill();
+        c.restore();
+      }
+    }
+
+    const fringe = Math.max(1.1, r * 0.055);
+    c.lineWidth = Math.max(1, r * 0.05);
+    roundPoly(c, outline.map((p) => ({ x: p.x + fringe, y: p.y })), radius);
+    c.strokeStyle = lit ? 'rgba(255,80,95,0.7)' : 'rgba(255,70,80,0.45)';
+    c.stroke();
+    roundPoly(c, outline.map((p) => ({ x: p.x - fringe, y: p.y })), radius);
+    c.strokeStyle = lit ? 'rgba(80,215,255,0.7)' : 'rgba(70,200,255,0.45)';
+    c.stroke();
+
+    for (const f of faces) {
+      const fy = f.pts.map((p) => p.y);
+      const g = c.createLinearGradient(0, Math.min(...fy), 0, Math.max(...fy) + 0.01);
+      if (lit) {
+        g.addColorStop(0, rgba(mix(hue.vivid, hue.core, 0.15 + 0.55 * f.light), 0.95));
+        g.addColorStop(1, rgba(mix(hue.deep, hue.vivid, 0.25 + 0.65 * f.light), 0.92));
+      } else {
+        g.addColorStop(0, rgba(hue.glow, 0.04 + 0.08 * f.light));
+        g.addColorStop(1, 'rgba(255,255,255,' + (0.01 + 0.04 * f.light).toFixed(3) + ')');
+      }
+      roundPoly(c, f.pts, radius * 0.55);
+      c.fillStyle = g;
+      c.fill();
+    }
+
+    c.save();
+    roundPoly(c, outline, radius);
+    c.clip();
+    c.lineWidth = r * 0.3;
+    c.strokeStyle = lit ? rgba(hue.core, 0.35) : 'rgba(255,255,255,0.05)';
+    c.stroke();
+    c.restore();
+
+    c.lineCap = 'round';
+    c.lineWidth = r * 0.05;
+    c.strokeStyle = lit ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.32)';
+    for (let i = 0; i < faces.length; i++) {
+      for (let j = i + 1; j < faces.length; j++) {
+        const shared = faces[i].pts.filter((p, idx) => faces[j].keys.includes(faces[i].keys[idx]));
+        if (shared.length !== 2) continue;
+        const [a, b] = shared;
+        c.beginPath();
+        c.moveTo(a.x + (b.x - a.x) * 0.15, a.y + (b.y - a.y) * 0.15);
+        c.lineTo(a.x + (b.x - a.x) * 0.85, a.y + (b.y - a.y) * 0.85);
+        c.stroke();
+      }
+    }
+
+    const rimGrad = c.createLinearGradient(pad, pad, pad + maxX - minX, pad + maxY - minY);
+    rimGrad.addColorStop(0, lit ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.75)');
+    rimGrad.addColorStop(0.5, lit ? rgba(hue.vivid, 0.95) : 'rgba(255,255,255,0.22)');
+    rimGrad.addColorStop(1, lit ? rgba(hue.deep, 0.8) : 'rgba(255,255,255,0.08)');
+    roundPoly(c, outline, radius);
+    c.lineWidth = Math.max(1, r * 0.045);
+    c.strokeStyle = rimGrad;
+    c.stroke();
+
+    const topFace = faces.reduce((a, f) => (f.up > a.up ? f : a), faces[0]);
+    const tcx = topFace.pts.reduce((a, p) => a + p.x, 0) / topFace.pts.length;
+    const tcy = topFace.pts.reduce((a, p) => a + p.y, 0) / topFace.pts.length;
+    const leftmost = topFace.pts.reduce((a, p) => (p.x < a.x ? p : a), topFace.pts[0]);
+    const hx = tcx + (leftmost.x - tcx) * 0.4;
+    const hy = tcy + (leftmost.y - tcy) * 0.4;
+    const spec = c.createRadialGradient(hx, hy, 0, hx, hy, r * 0.32);
+    spec.addColorStop(0, 'rgba(255,255,255,' + (lit ? 0.9 : 0.45) + ')');
+    spec.addColorStop(1, 'rgba(255,255,255,0)');
+    c.save();
+    roundPoly(c, topFace.pts, radius * 0.55);
+    c.clip();
+    c.fillStyle = spec;
+    c.fillRect(hx - r, hy - r, r * 2, r * 2);
+    c.restore();
+
+    c.beginPath();
+    c.moveTo(kx - r * 0.11, knotY);
+    c.lineTo(kx + r * 0.11, knotY);
+    c.lineTo(kx, knotTop - r * 0.12);
+    c.closePath();
+    c.fillStyle = lit ? hue.vivid : 'rgba(255,255,255,0.22)';
+    c.fill();
+
+    return {
+      canvas: cv,
+      w,
+      h: ht,
+      kx,
+      ky: knotY,
+      bodyOff: knotY - (oy + (minY + maxY) / 2),
+      outline: outline.map((p) => ({ x: p.x - kx, y: p.y - knotY })),
+      radius,
+    };
+  }
+
+  function drawWord(c, blurPx) {
+    const size = Math.max(48, Math.min(160, W * 0.11));
+    const spacing = size * 0.45;
+    c.save();
+    if (blurPx) c.filter = 'blur(' + blurPx.toFixed(1) + 'px)';
+    c.font = '200 ' + size + 'px Bahnschrift, "Segoe UI", sans-serif';
+    if ('fontStretch' in c) c.fontStretch = 'condensed';
+    c.textBaseline = 'middle';
+    const chars = Array.from('РЕДАКТОР');
+    const widths = chars.map((ch) => c.measureText(ch).width);
+    const total = widths.reduce((a, b) => a + b, 0) + spacing * (chars.length - 1);
+    const left = W / 2 - total / 2;
+    const put = (dx, color) => {
+      let x = left + dx;
+      c.fillStyle = color;
+      chars.forEach((ch, i) => {
+        c.fillText(ch, x, H / 2);
+        x += widths[i] + spacing;
+      });
+    };
+    put(1.5, 'rgba(255,50,60,0.45)');
+    put(-1.5, 'rgba(50,210,255,0.45)');
+    put(0, '#f6f6f8');
+    c.restore();
+    return { x: left - size * 0.2, y: H / 2 - size * 0.6, w: total + size * 0.4, h: size * 1.2 };
+  }
+
+  function sizeHero() {
+    heroBanner.style.minHeight = Math.max(300, window.innerHeight - headerEl.offsetHeight) + 'px';
+  }
+
+  function build() {
+    const w = heroBanner.clientWidth;
+    const h = heroBanner.clientHeight;
+    if (w < 10 || h < 10 || (w === W && h === H)) return;
+    W = w;
+    H = h;
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    canvas.style.width = W + 'px';
+    canvas.style.height = H + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+    const makeLayer = () => {
+      const layer = document.createElement('canvas');
+      layer.width = canvas.width;
+      layer.height = canvas.height;
+      const lc = layer.getContext('2d');
+      lc.setTransform(DPR, 0, 0, DPR, 0, 0);
+      return { layer, lc };
+    };
+
+    const plain = makeLayer();
+    const g = plain.lc.createRadialGradient(W / 2, H * 0.45, 0, W / 2, H * 0.45, Math.max(W, H) * 0.75);
+    g.addColorStop(0, '#1d1d21');
+    g.addColorStop(1, '#060607');
+    plain.lc.fillStyle = g;
+    plain.lc.fillRect(0, 0, W, H);
+    bgPlain = plain.layer;
+
+    const sharpWord = makeLayer();
+    textRect = drawWord(sharpWord.lc, 0);
+    textSharp = sharpWord.layer;
+
+    const blurredWord = makeLayer();
+    drawWord(blurredWord.lc, Math.max(3, W * 0.004));
+    textBlur = blurredWord.layer;
+
+    textFrame = makeLayer();
+
+    S = Math.max(0.7, Math.min(1.8, Math.sqrt(W * H) / 560));
+    const count = Math.max(18, Math.min(60, Math.round(W * H / 14000)));
+    balloons = [];
+    for (let k = 0; k < count; k++) {
+      const z = Math.random();
+      const r = (9 + 19 * z) * S;
+      const hue = HUES[Math.floor(Math.random() * HUES.length)];
+      const blur = z < 0.4 ? (0.4 - z) * 6 : 0;
+      const yaw = (Math.random() < 0.5 ? -1 : 1) * rand(0.45, 0.95);
+      const dark = makeSprite(r, hue, false, blur, yaw);
+      const light = makeSprite(r, hue, true, blur, yaw);
+      const x = rand(-0.04 * W, 1.04 * W);
+      const y = rand(0.1 * H, 0.8 * H);
+      const ax = x + rand(-0.1, 0.1) * W;
+      const ay = H + 30;
+      const ky = y + dark.bodyOff;
+      const th0 = Math.atan2(x - ax, ay - ky);
+      balloons.push({
+        z, r, ax, ay, th0, th: th0, om: 0, kx: x, ky, lit: 0,
+        alpha: 0.4 + 0.6 * z,
+        L: Math.hypot(x - ax, ay - ky),
+        swayA: rand(0.012, 0.03), swayW: rand(0.0004, 0.0009), ph: rand(0, 6.28),
+        bobA: rand(1.5, 4) * S, bobW: rand(0.001, 0.002), ph2: rand(0, 6.28),
+        pulseW: rand(0.0002, 0.0005), ph3: rand(0, 6.28),
+        refractX: Math.sign(yaw) * r * 0.18,
+        refractY: r * 0.12,
+        dark,
+        light,
+      });
+    }
+    balloons.sort((a, b) => a.z - b.z);
+  }
+
+  let last = performance.now();
+  function draw(t) {
+    requestAnimationFrame(draw);
+    const dt = Math.min(2.5, (t - last) / 16.67);
+    last = t;
+    if (heroBanner.style.display === 'none' || !bgPlain) return;
+
+    const R = 130 * S;
+    if (hold) hold.rad += 10 * S * dt;
+
+    for (const b of balloons) {
+      const sway = b.swayA * Math.sin(t * b.swayW + b.ph);
+      let acc = -0.003 * (b.th - (b.th0 + sway)) - 0.035 * b.om;
+      let litTarget = Math.pow(Math.max(0, Math.sin(t * b.pulseW + b.ph3)), 24) * 0.35;
+      const bodyY = b.ky - b.dark.bodyOff;
+      if (mouse) {
+        const dx = b.kx - mouse.x;
+        const d = Math.hypot(dx, bodyY - mouse.y);
+        if (d < R) {
+          const f = 1 - d / R;
+          acc += (dx >= 0 ? 1 : -1) * f * f * 0.0007;
+          litTarget = Math.max(litTarget, Math.min(1, f * 1.6));
+        }
+      }
+      if (hold) {
+        const hx = b.kx - hold.x;
+        const hd = Math.hypot(hx, bodyY - hold.y);
+        if (hd < hold.rad) {
+          litTarget = 1;
+          if (hd > hold.rad - 60 * S) acc += (hx >= 0 ? 1 : -1) * 0.0012;
+        }
+      }
+      b.om += acc * dt;
+      b.th += b.om * dt;
+      b.lit += (litTarget - b.lit) * Math.min(1, (litTarget > b.lit ? 0.12 : 0.025) * dt);
+      b.len = b.L + Math.sin(t * b.bobW + b.ph2) * b.bobA + b.lit * 8 * S;
+      b.kx = b.ax + b.len * Math.sin(b.th);
+      b.ky = b.ay - b.len * Math.cos(b.th);
+      b.angle = b.th * 1.15 + Math.sin(t * b.swayW * 1.7 + b.ph2) * 0.03;
+    }
+
+    // Glass only swaps sharp letters for blurred ones on this layer, so it never hides cubes behind it.
+    const tc = textFrame.lc;
+    tc.setTransform(1, 0, 0, 1, 0, 0);
+    tc.globalAlpha = 1;
+    tc.clearRect(0, 0, textFrame.layer.width, textFrame.layer.height);
+    tc.setTransform(DPR, 0, 0, DPR, 0, 0);
+    tc.drawImage(textSharp, 0, 0, W, H);
+    for (const b of balloons) {
+      const cx = b.kx + Math.sin(b.angle) * b.dark.bodyOff;
+      const cy = b.ky - Math.cos(b.angle) * b.dark.bodyOff;
+      const reach = b.r * 1.6;
+      if (cx + reach < textRect.x || cx - reach > textRect.x + textRect.w
+        || cy + reach < textRect.y || cy - reach > textRect.y + textRect.h) continue;
+      tc.save();
+      tc.translate(b.kx, b.ky);
+      tc.rotate(b.angle);
+      roundPoly(tc, b.dark.outline, b.dark.radius);
+      tc.clip();
+      tc.setTransform(DPR, 0, 0, DPR, 0, 0);
+      tc.globalAlpha = b.alpha;
+      tc.globalCompositeOperation = 'destination-out';
+      tc.fillRect(textRect.x, textRect.y, textRect.w, textRect.h);
+      tc.globalCompositeOperation = 'source-over';
+      tc.drawImage(textBlur, b.refractX, b.refractY, W, H);
+      tc.restore();
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.drawImage(bgPlain, 0, 0, W, H);
+    ctx.drawImage(textFrame.layer, 0, 0, W, H);
+
+    for (const b of balloons) {
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = 'rgba(150,150,165,' + (0.1 + 0.22 * b.z).toFixed(3) + ')';
+      ctx.lineWidth = 0.6 + 0.7 * b.z;
+      ctx.beginPath();
+      ctx.moveTo(b.kx, b.ky);
+      ctx.quadraticCurveTo((b.ax + b.kx) / 2 - (b.th - b.th0) * b.len * 0.25, (b.ay + b.ky) / 2, b.ax, b.ay);
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(b.kx, b.ky);
+      ctx.rotate(b.angle);
+      ctx.globalAlpha = b.alpha;
+      ctx.drawImage(b.dark.canvas, -b.dark.kx, -b.dark.ky, b.dark.w, b.dark.h);
+      if (b.lit > 0.01) {
+        ctx.globalAlpha = b.alpha * Math.min(1, b.lit);
+        ctx.drawImage(b.light.canvas, -b.light.kx, -b.light.ky, b.light.w, b.light.h);
+      }
+      ctx.restore();
+    }
+
+    ctx.save();
+    ctx.globalAlpha = 0.05;
+    ctx.translate(-Math.random() * 160, -Math.random() * 160);
+    ctx.fillStyle = noisePattern;
+    ctx.fillRect(0, 0, W + 160, H + 160);
+    ctx.restore();
+  }
+
+  function pointerPos(e) {
+    const rect = heroBanner.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+  heroBanner.addEventListener('pointermove', (e) => { mouse = pointerPos(e); });
+  heroBanner.addEventListener('pointerleave', () => { mouse = null; hold = null; });
+  heroBanner.addEventListener('pointerdown', (e) => {
+    const p = pointerPos(e);
+    hold = { x: p.x, y: p.y, rad: 0 };
+  });
+  window.addEventListener('pointerup', () => { hold = null; });
+
+  sizeHero();
+  build();
+  window.addEventListener('resize', sizeHero);
+  let rebuildTimer = null;
+  new ResizeObserver(() => {
+    clearTimeout(rebuildTimer);
+    rebuildTimer = setTimeout(build, 150);
+  }).observe(heroBanner);
+  requestAnimationFrame(draw);
+})();
+
 // ---------- Wire up header buttons ----------
 btnOpen.onclick = pickFolder;
 btnSave.onclick = saveRounds;
+initialHint.onclick = pickFolder;
+initialHint.addEventListener('pointerdown', (e) => e.stopPropagation());
 
 window.addEventListener('beforeunload', (e) => {
   if (state.dirty) {
