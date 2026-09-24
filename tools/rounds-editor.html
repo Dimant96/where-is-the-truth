@@ -2231,8 +2231,8 @@ const heroBalloons = (function initHeroBalloons() {
       const hue = HUES[Math.floor(Math.random() * HUES.length)];
       const blur = z < 0.4 ? (0.4 - z) * 6 : 0;
       const yaw = (Math.random() < 0.5 ? -1 : 1) * rand(0.45, 0.95);
-      const dark = makeSprite(r, hue, false, blur, yaw);
-      const light = makeSprite(r, hue, true, blur, yaw);
+      const dark = makeSprite(r, hue, false, blur, yaw, false);
+      const light = makeSprite(r, hue, true, blur, yaw, false);
       const fx = rand(-0.04, 1.04);
       balloons.push({
         z, r, fx, fy: rand(0.1, 0.8), fax: fx + rand(-0.1, 0.1),
@@ -2342,15 +2342,8 @@ const heroBalloons = (function initHeroBalloons() {
     ctx.drawImage(bgPlain, 0, 0, W, H);
     ctx.drawImage(textFrame.layer, 0, 0, W, H);
 
+    // Strings are no longer drawn, but each balloon still swings as a pendulum around its anchor below.
     for (const b of balloons) {
-      ctx.globalAlpha = 1;
-      ctx.strokeStyle = 'rgba(150,150,165,' + (0.1 + 0.22 * b.z).toFixed(3) + ')';
-      ctx.lineWidth = 0.6 + 0.7 * b.z;
-      ctx.beginPath();
-      ctx.moveTo(b.kx, b.ky);
-      ctx.quadraticCurveTo((b.ax + b.kx) / 2 - (b.th - b.th0) * b.len * 0.25, (b.ay + b.ky) / 2, b.ax, b.ay);
-      ctx.stroke();
-
       ctx.save();
       ctx.translate(b.kx, b.ky);
       ctx.rotate(b.angle);
