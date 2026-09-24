@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Редактор этапов — where-is-the-truth</title>
+<title>Конструктор этапов — where-is-the-truth</title>
 <style>
   :root {
     --bg: #1c1d21;
@@ -15,7 +15,6 @@
     --text: #e8e9ec;
     --muted: #9a9ba5;
     --accent: #35867e;
-    --accent-hover: #439a90;
     --danger: #f36a6a;
     --danger-bg: #3a2225;
     --danger-border: #5a2f2f;
@@ -74,14 +73,6 @@
   }
   button:hover { background: var(--surface-3); }
   button:disabled { opacity: 0.5; cursor: not-allowed; }
-  button.primary {
-    background: var(--accent);
-    color: #fff;
-    font-weight: 600;
-  }
-  button.primary:hover { background: var(--accent-hover); }
-  button.danger { color: var(--danger); }
-  button.danger:hover { background: var(--danger-bg); }
   #status {
     margin-left: auto;
     font-size: 13px;
@@ -252,7 +243,6 @@
     border-top: 1px solid var(--border);
   }
   .scenario-row:first-child { border-top: none; }
-  .scenario-row.drag-over { border-top-color: var(--accent); }
   .scenario-row-top {
     display: flex;
     align-items: center;
@@ -296,28 +286,83 @@
     background: var(--accent);
     color: #fff;
   }
-  .sound-slot {
+  .design-block {
     background: var(--card-bg);
     border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .design-block-title {
+    margin: 0;
     padding: 14px 16px;
-    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
   }
-  .sound-slot label {
-    font-weight: 600;
-    font-size: 14px;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
-  .sound-slot-controls {
+  .design-slot {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+  }
+  .design-slot + .design-slot { border-top: 1px solid var(--border); }
+  .design-slot-label {
+    flex: 1;
+    min-width: 160px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+  .design-slot-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     flex-wrap: wrap;
   }
-  .sound-slot audio {
-    height: 32px;
-    max-width: 260px;
+  .sound-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 12px;
+    color: var(--muted);
+    min-width: 116px;
   }
+  .sound-status::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+  }
+  .sound-status.ready { color: var(--text); }
+  .sound-status.ready::before { background: #3fe0cc; box-shadow: 0 0 6px rgba(63,224,204,0.8); }
+  .bg-thumb {
+    width: 128px;
+    height: 72px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #0c0c0e center / contain no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .bg-thumb.empty { border-style: dashed; }
+  .font-preview { min-width: 220px; }
+  .font-name { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
+  .font-sample { font-size: 22px; color: var(--text); line-height: 1.2; }
+  .font-sample.missing { font-size: 13px; color: var(--muted); }
+  .kind-toggle.score-presets { margin-bottom: 0; }
+  .score-input[type="text"] { width: 110px; }
+  .field-error { font-size: 12px; color: var(--danger); }
+  .field-error:empty { display: none; }
+  .stage-word-field { display: flex; flex-direction: column; gap: 4px; width: 220px; }
+  .field-hint { font-size: 12px; color: var(--muted); }
   .error {
     background: var(--danger-bg);
     border: 1px solid var(--danger-border);
@@ -337,7 +382,6 @@
     background: var(--card-bg);
   }
   .round-card + .round-card { border-top: 1px solid var(--border); }
-  .round-card.drag-over { outline: 2px solid var(--accent); outline-offset: -2px; }
   .round-head {
     display: flex;
     align-items: center;
@@ -351,7 +395,10 @@
     font-size: 18px;
     padding: 2px 4px;
     user-select: none;
+    touch-action: none;
+    transition: color .15s, text-shadow .15s;
   }
+  .drag-handle:hover { color: #3fe0cc; text-shadow: 0 0 8px rgba(63,224,204,0.7); }
   .round-num {
     color: var(--muted);
     font-size: 13px;
@@ -392,7 +439,7 @@
     flex-shrink: 0;
     transition: background .18s, border-color .18s, color .18s, box-shadow .18s, transform .18s;
   }
-  .glass-btn.danger { --glow: 255,124,156; color: var(--muted); }
+  .glass-btn.danger { --glow: 255,124,156; }
   .glass-btn:hover:not(:disabled) {
     background: rgba(var(--glow),0.18);
     border-color: rgba(var(--glow),0.55);
@@ -404,8 +451,16 @@
       -1px 0 0 rgba(255,70,80,0.35),
       1px 0 0 rgba(70,200,255,0.35);
   }
+  .glass-btn.playing {
+    background: rgba(var(--glow),0.18);
+    border-color: rgba(var(--glow),0.55);
+    color: #fff;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 0 14px rgba(var(--glow),0.45);
+  }
   .glass-btn:active:not(:disabled) { transform: scale(0.96); }
   .glass-btn svg { width: 17px; height: 17px; }
+  .glass-btn.compact { width: 24px; height: 24px; border-radius: 7px; }
+  .glass-btn.compact svg { width: 14px; height: 14px; }
   .glass-tip {
     position: fixed;
     z-index: 100;
@@ -468,7 +523,6 @@
     gap: 10px;
     align-items: flex-start;
   }
-  .question-row.drag-over { border-color: var(--accent); }
   .question-main { flex: 1; min-width: 0; }
   .kind-toggle {
     display: flex;
@@ -517,10 +571,6 @@
     display: flex;
     flex-direction: column;
     gap: 6px;
-  }
-  .small-btn {
-    padding: 4px 8px;
-    font-size: 12px;
   }
   .add-round-btn {
     width: 100%;
@@ -577,29 +627,34 @@
     text-overflow: ellipsis;
     white-space: nowrap;
   }
-  .buffer-dropdown-delete {
-    border: none;
-    background: transparent;
-    color: var(--muted);
-    border-radius: 999px;
-    width: 22px;
-    height: 22px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .buffer-dropdown-delete:hover {
-    color: var(--danger);
-    background: var(--danger-bg);
-  }
   .empty-state {
     text-align: center;
     color: var(--muted);
     padding: 60px 20px;
+  }
+  body.sorting, body.sorting * { cursor: grabbing !important; user-select: none; }
+  .sort-placeholder {
+    background-image: linear-gradient(rgba(63,224,204,0.06), rgba(63,224,204,0.06));
+    outline: 1px dashed rgba(63,224,204,0.6);
+    outline-offset: -4px;
+  }
+  .sort-placeholder > * { visibility: hidden; }
+  .sort-ghost {
+    position: fixed;
+    z-index: 60;
+    margin: 0;
+    pointer-events: none;
+    background: var(--card-bg);
+    border: 1px solid rgba(63,224,204,0.55);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.5), 0 0 18px rgba(63,224,204,0.35);
+  }
+  .sort-ghost .drag-handle { color: #3fe0cc; }
+  .sort-landed { animation: sort-land .9s ease-out; }
+  @keyframes sort-land {
+    from { box-shadow: inset 0 0 0 1px rgba(63,224,204,0.85), inset 0 0 0 999px rgba(63,224,204,0.12); }
+    to { box-shadow: inset 0 0 0 1px rgba(63,224,204,0), inset 0 0 0 999px rgba(63,224,204,0); }
   }
 </style>
 </head>
@@ -609,7 +664,7 @@
     <polygon points="10,0 19,5 10,10 1,5" fill="#fff3d6"/>
     <polygon points="1,5 10,10 10,20 1,15" fill="#ffc85a"/>
     <polygon points="10,10 19,5 19,15 10,20" fill="#c77f10"/>
-  </svg>Редактор <small style="font-size:11px;color:var(--muted);font-weight:400">build 10</small></h1>
+  </svg>Конструктор <small style="font-size:11px;color:var(--muted);font-weight:400">build 10</small></h1>
   <nav id="tabs" class="tabs" style="display:none">
     <button class="tab-btn" data-tab="scenarios">Сценарии</button>
     <button class="tab-btn" data-tab="design">Дизайн</button>
@@ -618,7 +673,7 @@
   <button id="btnSave" disabled style="display:none">Сохранить</button>
 </header>
 <div id="heroBanner" class="hero-banner">
-  <canvas id="heroCanvas" class="hero-canvas" role="img" aria-label="Редактор"></canvas>
+  <canvas id="heroCanvas" class="hero-canvas" role="img" aria-label="Конструктор"></canvas>
   <div class="hero-vignette"></div>
   <div id="heroError" class="error hero-error" style="display:none"></div>
   <button id="initialHint" class="hero-cta" type="button">Откройте папку проекта</button>
@@ -651,21 +706,23 @@ const RoundType = {
 };
 
 const state = {
-  rootHandle: null,
   pendingHandle: null, // remembered folder handle awaiting a user gesture to re-request permission
   imagesHandle: null,
   roundsHandle: null,
   rounds: null,
   expanded: new Set(),
   dirty: false,
-  dragRoundFrom: null,
   scenariosHandle: null,
   scenarios: [], // ordered list of scenario names (without .json)
   scenariosExpanded: false,
   stageBufferHandle: null,
   stageBuffer: [], // sorted list of saved single-round template names (without .json)
   stageBufferExpanded: false,
-  activeTab: null,
+  audioHandle: null,
+  backgroundHandle: null,
+  fontsHandle: null,
+  settingsHandle: null,
+  settings: null, // contents of src/assets/settings.json
 };
 
 const app = document.getElementById('app');
@@ -685,7 +742,6 @@ const heroError = document.getElementById('heroError');
 const tabBackdrop = document.getElementById('tabBackdrop');
 
 function setActiveTab(tab) {
-  state.activeTab = tab;
   tabButtons.forEach((btn) => btn.classList.toggle('active', btn.dataset.tab === tab));
   layoutEl.style.display = tab === 'scenarios' ? '' : 'none';
   designPanel.style.display = tab === 'design' ? '' : 'none';
@@ -702,9 +758,10 @@ tabButtons.forEach((btn) => {
 
 // ---------- Design tab: sections list ----------
 const DESIGN_SECTIONS = [
-  { id: 'sounds', label: 'Звуки', render: renderSoundsSection },
+  { id: 'general', label: 'Общие', render: renderGeneralSection },
 ];
 let activeDesignSection = null;
+let designObjectUrls = [];
 
 function renderDesignSectionsList() {
   designSectionsList.innerHTML = '';
@@ -721,8 +778,430 @@ function setActiveDesignSection(id) {
   activeDesignSection = id;
   renderDesignSectionsList();
   const section = DESIGN_SECTIONS.find((s) => s.id === id);
+  stopSoundPreview();
+  designObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+  designObjectUrls = [];
   designSectionContent.innerHTML = '';
   if (section) section.render(designSectionContent);
+}
+
+function refreshDesign() {
+  if (activeDesignSection) setActiveDesignSection(activeDesignSection);
+}
+
+function designObjectUrl(file) {
+  const url = URL.createObjectURL(file);
+  designObjectUrls.push(url);
+  return url;
+}
+
+// ---------- Design tab: "Общие" — one visually separate block per topic ----------
+function renderGeneralSection(container) {
+  container.appendChild(renderDesignBlock('Фоны', (block) => {
+    BACKGROUND_SLOTS.forEach((slot) => block.appendChild(renderBackgroundSlot(slot)));
+  }));
+  container.appendChild(renderDesignBlock('Шрифты', (block) => block.appendChild(renderFontSlot())));
+  container.appendChild(renderDesignBlock('Звуки', (block) => {
+    SOUND_SLOTS.forEach((slot) => block.appendChild(renderSoundSlot(slot)));
+  }));
+  container.appendChild(renderDesignBlock('Детали', (block) => {
+    block.appendChild(renderScoringSlot());
+    block.appendChild(renderStageWordSlot());
+  }));
+}
+
+function renderDesignBlock(title, fill) {
+  const block = document.createElement('section');
+  block.className = 'design-block';
+  const heading = document.createElement('h2');
+  heading.className = 'design-block-title';
+  heading.textContent = title;
+  block.appendChild(heading);
+  fill(block);
+  return block;
+}
+
+function renderDesignSlot(labelText) {
+  const row = document.createElement('div');
+  row.className = 'design-slot';
+  const label = document.createElement('span');
+  label.className = 'design-slot-label';
+  label.textContent = labelText;
+  row.appendChild(label);
+  const controls = document.createElement('div');
+  controls.className = 'design-slot-controls';
+  row.appendChild(controls);
+  return { row, controls };
+}
+
+// Returns setPresent(bool): with no file the pick button reads "Добавить" and there is nothing to delete.
+function addReplaceDeleteButtons(controls, onPick, onDelete, deleteTitle) {
+  const pickBtn = createIconBtn(ICON_PLUS, 'Добавить');
+  pickBtn.onclick = onPick;
+  controls.appendChild(pickBtn);
+  const deleteBtn = createIconBtn(ICON_TRASH, deleteTitle, true);
+  deleteBtn.onclick = onDelete;
+  controls.appendChild(deleteBtn);
+  return (present) => {
+    const tip = present ? 'Заменить' : 'Добавить';
+    pickBtn.innerHTML = present ? ICON_REPLACE : ICON_PLUS;
+    pickBtn.dataset.tip = tip;
+    pickBtn.setAttribute('aria-label', tip);
+    deleteBtn.disabled = !present;
+  };
+}
+
+async function readDesignFile(dirHandle, fileName) {
+  const fh = await dirHandle.getFileHandle(fileName);
+  return fh.getFile();
+}
+
+async function writeFileHandle(fileHandle, data) {
+  const writable = await fileHandle.createWritable();
+  await writable.write(data);
+  await writable.close();
+}
+
+async function writeDesignFile(dirHandle, fileName, data) {
+  await writeFileHandle(await dirHandle.getFileHandle(fileName, { create: true }), data);
+}
+
+async function pickOneFile(pickerId, description, accept) {
+  if (!window.showOpenFilePicker) {
+    setStatus('Этот браузер не поддерживает выбор файла таким способом.', 'dirty');
+    return null;
+  }
+  try {
+    const [handle] = await window.showOpenFilePicker({ id: pickerId, multiple: false, types: [{ description, accept }] });
+    return await handle.getFile();
+  } catch (e) {
+    return null; // user cancelled the dialog
+  }
+}
+
+async function removeDesignFile(dirHandle, fileName, confirmText, doneText) {
+  if (!confirm(confirmText)) return false;
+  try {
+    await dirHandle.removeEntry(fileName);
+    setStatus(doneText, 'saved');
+  } catch (e) {
+    if (e.name !== 'NotFoundError') {
+      setStatus('Не удалось удалить файл: ' + e.message, 'dirty');
+      return false;
+    }
+  }
+  return true;
+}
+
+// ---------- Design: backgrounds (fixed file names the game's styles point at) ----------
+const BACKGROUND_SLOTS = [
+  { id: 'welcome.jpg', label: 'Начальный фон' },
+  { id: 'round.jpg', label: 'Фон названия раунда' },
+  { id: 'first-team.jpg', label: 'Фон левой команды' },
+  { id: 'second-team.jpg', label: 'Фон правой команды' },
+  { id: 'end.jpg', label: 'Финальный фон' },
+];
+
+function renderBackgroundSlot(slot) {
+  const { row, controls } = renderDesignSlot(slot.label);
+  const thumb = document.createElement('div');
+  thumb.className = 'bg-thumb';
+  controls.appendChild(thumb);
+  const setPresent = addReplaceDeleteButtons(controls, () => pickBackgroundFile(slot), () => deleteBackgroundFile(slot), 'Удалить фон');
+  setPresent(false);
+  readDesignFile(state.backgroundHandle, slot.id)
+    .then((file) => {
+      thumb.style.backgroundImage = 'url("' + designObjectUrl(file) + '")';
+      setPresent(true);
+    })
+    .catch(() => {
+      thumb.classList.add('empty');
+      thumb.textContent = 'Фон не выбран';
+    });
+  return row;
+}
+
+async function pickBackgroundFile(slot) {
+  const file = await pickOneFile('design-backgrounds', 'Картинка (JPG, PNG, WebP)', {
+    'image/jpeg': ['.jpg', '.jpeg'],
+    'image/png': ['.png'],
+    'image/webp': ['.webp'],
+  });
+  if (!file) return;
+  try {
+    const isJpeg = file.type === 'image/jpeg' || /\.jpe?g$/i.test(file.name);
+    const data = isJpeg ? await file.arrayBuffer() : await convertImageToJpeg(file);
+    await writeDesignFile(state.backgroundHandle, slot.id, data);
+    setStatus('Фон «' + slot.label + '» обновлён', 'saved');
+  } catch (e) {
+    setStatus('Не удалось сохранить фон: ' + e.message, 'dirty');
+  }
+  refreshDesign();
+}
+
+// The game's styles reference .jpg files, so PNG/WebP are re-encoded; transparency becomes black like the game's backdrop.
+async function convertImageToJpeg(file) {
+  const bitmap = await createImageBitmap(file);
+  const canvas = document.createElement('canvas');
+  canvas.width = bitmap.width;
+  canvas.height = bitmap.height;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.drawImage(bitmap, 0, 0);
+  bitmap.close();
+  const blob = await new Promise((resolve, reject) => {
+    canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('картинку не удалось перевести в JPG'))), 'image/jpeg', 0.92);
+  });
+  return blob.arrayBuffer();
+}
+
+async function deleteBackgroundFile(slot) {
+  const removed = await removeDesignFile(
+    state.backgroundHandle, slot.id,
+    'Удалить «' + slot.label + '»? В игре на этом месте будет пустой фон.',
+    'Фон «' + slot.label + '» удалён',
+  );
+  if (removed) refreshDesign();
+}
+
+// ---------- Design: game font (one file the game's global styles load) ----------
+const FONT_FILE = 'game-font.ttf';
+let fontPreviewFace = null;
+let fontPreviewCounter = 0;
+
+function renderFontSlot() {
+  const { row, controls } = renderDesignSlot('Шрифт игры');
+  const preview = document.createElement('div');
+  preview.className = 'font-preview';
+  const name = document.createElement('div');
+  name.className = 'font-name';
+  const sample = document.createElement('div');
+  sample.className = 'font-sample';
+  preview.appendChild(name);
+  preview.appendChild(sample);
+  controls.appendChild(preview);
+  const setPresent = addReplaceDeleteButtons(controls, pickFontFile, deleteFontFile, 'Удалить шрифт');
+  setPresent(false);
+
+  readDesignFile(state.fontsHandle, FONT_FILE)
+    .then(async (file) => {
+      setPresent(true);
+      const family = await loadFontPreview(await file.arrayBuffer());
+      name.textContent = state.settings.fontName || 'Без названия';
+      sample.style.fontFamily = '"' + family + '"';
+      sample.textContent = 'Конструктор АБВ abc 0123';
+    })
+    .catch(() => {
+      sample.classList.add('missing');
+      sample.textContent = 'Шрифт не выбран — в игре будет стандартный шрифт';
+    });
+
+  return row;
+}
+
+// Each preview gets a fresh family name so the browser never shows a stale cached face.
+async function loadFontPreview(data) {
+  const family = 'DesignFontPreview' + (++fontPreviewCounter);
+  const face = new FontFace(family, data);
+  await face.load();
+  if (fontPreviewFace) document.fonts.delete(fontPreviewFace);
+  document.fonts.add(face);
+  fontPreviewFace = face;
+  return family;
+}
+
+async function pickFontFile() {
+  const file = await pickOneFile('design-fonts', 'Шрифт (TTF, OTF)', {
+    'font/ttf': ['.ttf'],
+    'font/otf': ['.otf'],
+  });
+  if (!file) return;
+  try {
+    const data = await file.arrayBuffer();
+    try {
+      await new FontFace('DesignFontCheck', data).load();
+    } catch (e) {
+      setStatus('Этот файл не похож на шрифт — выберите файл .ttf или .otf', 'dirty');
+      return;
+    }
+    await writeDesignFile(state.fontsHandle, FONT_FILE, data);
+    state.settings.fontName = file.name.replace(/\.[^.]+$/, '');
+    await saveSettings();
+    setStatus('Шрифт «' + state.settings.fontName + '» установлен', 'saved');
+  } catch (e) {
+    setStatus('Не удалось сохранить шрифт: ' + e.message, 'dirty');
+  }
+  refreshDesign();
+}
+
+async function deleteFontFile() {
+  const removed = await removeDesignFile(
+    state.fontsHandle, FONT_FILE,
+    'Удалить шрифт игры? В игре будет использоваться стандартный шрифт.',
+    'Шрифт удалён',
+  );
+  if (!removed) return;
+  state.settings.fontName = '';
+  try {
+    await saveSettings();
+  } catch (e) {
+    setStatus('Не удалось обновить настройки: ' + e.message, 'dirty');
+  }
+  refreshDesign();
+}
+
+// ---------- Design: points per correct answer ----------
+const SCORE_PRESETS = [10, 50, 100];
+
+function renderScoringSlot() {
+  const { row, controls } = renderDesignSlot('Баллы за правильный ответ');
+
+  const presets = document.createElement('div');
+  presets.className = 'kind-toggle score-presets';
+  const presetButtons = SCORE_PRESETS.map((value) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = String(value);
+    btn.onclick = () => {
+      input.value = String(value);
+      applyScore();
+    };
+    presets.appendChild(btn);
+    return { value, btn };
+  });
+  controls.appendChild(presets);
+
+  // A plain text field keeps typing by hand but drops the number spinner (and its wheel/arrow nudges).
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.inputMode = 'numeric';
+  input.maxLength = 7;
+  input.className = 'score-input';
+  input.value = String(state.settings.scorePoints);
+  input.setAttribute('aria-label', 'Своё количество баллов');
+  controls.appendChild(input);
+
+  const error = document.createElement('span');
+  error.className = 'field-error';
+  controls.appendChild(error);
+
+  const markActive = () => {
+    presetButtons.forEach(({ value, btn }) => btn.classList.toggle('active', value === state.settings.scorePoints));
+  };
+
+  const applyScore = async () => {
+    const value = Number(input.value);
+    if (input.value.trim() === '' || !Number.isInteger(value) || value < 1) {
+      error.textContent = 'Введите целое число больше нуля';
+      return;
+    }
+    error.textContent = '';
+    input.value = String(value);
+    if (value === state.settings.scorePoints) return;
+    const previous = state.settings.scorePoints;
+    state.settings.scorePoints = value;
+    try {
+      await saveSettings();
+      setStatus('Баллы за ответ: ' + value + ' — сохранено', 'saved');
+    } catch (e) {
+      state.settings.scorePoints = previous;
+      input.value = String(previous);
+      setStatus('Не удалось сохранить баллы: ' + e.message, 'dirty');
+    }
+    markActive();
+  };
+
+  input.addEventListener('input', () => {
+    const digits = input.value.replace(/\D/g, '');
+    if (digits !== input.value) input.value = digits;
+    error.textContent = '';
+  });
+  input.addEventListener('change', applyScore);
+  markActive();
+  return row;
+}
+
+// ---------- Design: the word the game shows before each round number ----------
+function renderStageWordSlot() {
+  const { row, controls } = renderDesignSlot('Имя соревнований');
+
+  const field = document.createElement('div');
+  field.className = 'stage-word-field';
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.maxLength = 40;
+  input.value = state.settings.stageWord;
+  input.setAttribute('aria-label', 'Имя соревнований');
+  const hint = document.createElement('div');
+  hint.className = 'field-hint';
+  const error = document.createElement('div');
+  error.className = 'field-error';
+  field.appendChild(input);
+  field.appendChild(hint);
+  field.appendChild(error);
+  controls.appendChild(field);
+
+  const showHint = () => {
+    const word = input.value.trim();
+    hint.textContent = word ? 'В игре: «' + word + ' 1»' : '';
+  };
+
+  const applyWord = async () => {
+    const word = input.value.trim();
+    if (!word) {
+      error.textContent = 'Введите слово — например, «Этап» или «Раунд»';
+      return;
+    }
+    error.textContent = '';
+    input.value = word;
+    if (word === state.settings.stageWord) return;
+    const previous = state.settings.stageWord;
+    state.settings.stageWord = word;
+    try {
+      await saveSettings();
+      setStatus('Имя соревнований «' + word + '» — сохранено', 'saved');
+    } catch (e) {
+      state.settings.stageWord = previous;
+      input.value = previous;
+      showHint();
+      setStatus('Не удалось сохранить имя соревнований: ' + e.message, 'dirty');
+    }
+  };
+
+  input.addEventListener('input', () => {
+    error.textContent = '';
+    showHint();
+  });
+  input.addEventListener('change', applyWord);
+  showHint();
+  return row;
+}
+
+// ---------- Design: settings.json (read by the game at build time) ----------
+const DEFAULT_SETTINGS = { scorePoints: 100, fontName: '', stageWord: 'Этап' };
+
+async function loadSettings(handle) {
+  let parsed = null;
+  try {
+    const text = await (await handle.getFile()).text();
+    if (text.trim()) parsed = JSON.parse(text);
+  } catch (e) {
+    parsed = null;
+  }
+  const settings = { ...DEFAULT_SETTINGS, ...(parsed && typeof parsed === 'object' ? parsed : {}) };
+  if (typeof settings.stageWord !== 'string' || !settings.stageWord.trim()) settings.stageWord = DEFAULT_SETTINGS.stageWord;
+  // A freshly created or broken file would stop the game from building, so it is rewritten right away.
+  if (!parsed) await writeSettingsFile(handle, settings);
+  return settings;
+}
+
+function writeSettingsFile(handle, settings) {
+  return writeFileHandle(handle, JSON.stringify(settings, null, 2) + '\n');
+}
+
+function saveSettings() {
+  return writeSettingsFile(state.settingsHandle, state.settings);
 }
 
 // ---------- Design tab: Sounds section ----------
@@ -732,92 +1211,76 @@ const SOUND_SLOTS = [
   { id: 'lose-question.mp3', label: 'Ошибочный ответ' },
 ];
 
-function renderSoundsSection(container) {
-  SOUND_SLOTS.forEach((slot) => {
-    container.appendChild(renderSoundSlot(slot));
-  });
-}
-
 function renderSoundSlot(slot) {
-  const box = document.createElement('div');
-  box.className = 'sound-slot';
-
-  const label = document.createElement('label');
-  label.textContent = slot.label;
-  box.appendChild(label);
-
-  const controls = document.createElement('div');
-  controls.className = 'sound-slot-controls';
-
-  const audio = document.createElement('audio');
-  audio.controls = true;
-  controls.appendChild(audio);
-
-  const changeBtn = document.createElement('button');
-  changeBtn.className = 'small-btn';
-  changeBtn.textContent = 'Заменить файл';
-  changeBtn.onclick = () => pickSoundFile(slot);
-  controls.appendChild(changeBtn);
-
-  const deleteBtn = createIconBtn(ICON_TRASH, 'Удалить файл', true);
-  deleteBtn.onclick = () => deleteSoundFile(slot);
-  controls.appendChild(deleteBtn);
-
-  box.appendChild(controls);
-
-  loadSoundPreview(slot.id, audio);
-
-  return box;
+  const { row, controls } = renderDesignSlot(slot.label);
+  const status = document.createElement('span');
+  status.className = 'sound-status';
+  controls.appendChild(status);
+  const playBtn = createIconBtn(ICON_PLAY, 'Прослушать');
+  playBtn.disabled = true;
+  controls.appendChild(playBtn);
+  const setPresent = addReplaceDeleteButtons(controls, () => pickSoundFile(slot), () => deleteSoundFile(slot), 'Удалить звук');
+  setPresent(false);
+  readDesignFile(state.audioHandle, slot.id)
+    .then((file) => {
+      const audio = new Audio(designObjectUrl(file));
+      status.textContent = 'Звук добавлен';
+      status.classList.add('ready');
+      playBtn.disabled = false;
+      playBtn.onclick = () => toggleSoundPreview(audio, playBtn);
+      setPresent(true);
+    })
+    .catch(() => { status.textContent = 'Звук не выбран'; });
+  return row;
 }
 
-function loadSoundPreview(fileName, audioEl) {
-  state.audioHandle.getFileHandle(fileName)
-    .then((fh) => fh.getFile())
-    .then((file) => { audioEl.src = URL.createObjectURL(file); })
-    .catch(() => {});
+let playingSound = null;
+
+function setPlayButton(btn, playing) {
+  btn.innerHTML = playing ? ICON_STOP : ICON_PLAY;
+  btn.classList.toggle('playing', playing);
+  const tip = playing ? 'Остановить' : 'Прослушать';
+  btn.dataset.tip = tip;
+  btn.setAttribute('aria-label', tip);
+}
+
+function stopSoundPreview() {
+  if (!playingSound) return;
+  playingSound.audio.pause();
+  setPlayButton(playingSound.btn, false);
+  playingSound = null;
+}
+
+function toggleSoundPreview(audio, btn) {
+  const wasThis = playingSound && playingSound.audio === audio;
+  stopSoundPreview();
+  if (wasThis) return;
+  audio.currentTime = 0;
+  audio.onended = stopSoundPreview;
+  audio.play().catch(() => stopSoundPreview());
+  playingSound = { audio, btn };
+  setPlayButton(btn, true);
 }
 
 async function pickSoundFile(slot) {
-  if (!window.showOpenFilePicker) {
-    setStatus('Этот браузер не поддерживает выбор файла таким способом.', 'dirty');
-    return;
-  }
-  let handles;
+  const file = await pickOneFile('design-sounds', 'MP3', { 'audio/mpeg': ['.mp3'] });
+  if (!file) return;
   try {
-    handles = await window.showOpenFilePicker({
-      id: 'design-sounds',
-      multiple: false,
-      excludeAcceptAllOption: false,
-      types: [{
-        description: 'MP3',
-        accept: { 'audio/mpeg': ['.mp3'] },
-      }],
-    });
-  } catch (e) {
-    return; // user cancelled the dialog
-  }
-  try {
-    const file = await handles[0].getFile();
-    const targetHandle = await state.audioHandle.getFileHandle(slot.id, { create: true });
-    const writable = await targetHandle.createWritable();
-    await writable.write(await file.arrayBuffer());
-    await writable.close();
+    await writeDesignFile(state.audioHandle, slot.id, await file.arrayBuffer());
     setStatus('Звук «' + slot.label + '» обновлён', 'saved');
-    if (activeDesignSection === 'sounds') setActiveDesignSection('sounds');
   } catch (e) {
     setStatus('Не удалось сохранить звук: ' + e.message, 'dirty');
   }
+  refreshDesign();
 }
 
 async function deleteSoundFile(slot) {
-  if (!confirm('Удалить звук «' + slot.label + '»?')) return;
-  try {
-    await state.audioHandle.removeEntry(slot.id);
-    setStatus('Звук «' + slot.label + '» удалён', 'saved');
-  } catch (e) {
-    setStatus('Не удалось удалить звук: ' + e.message, 'dirty');
-  }
-  if (activeDesignSection === 'sounds') setActiveDesignSection('sounds');
+  const removed = await removeDesignFile(
+    state.audioHandle, slot.id,
+    'Удалить звук «' + slot.label + '»?',
+    'Звук «' + slot.label + '» удалён',
+  );
+  if (removed) refreshDesign();
 }
 
 // ---------- IndexedDB (remembers the last picked folder so we don't ask every time) ----------
@@ -927,6 +1390,9 @@ async function loadFromRoot(rootHandle) {
     const roundsHandle = await assetsHandle.getFileHandle('rounds.json');
     const imagesHandle = await assetsHandle.getDirectoryHandle('questions-images');
     const audioHandle = await assetsHandle.getDirectoryHandle('audio', { create: true });
+    const backgroundHandle = await assetsHandle.getDirectoryHandle('background', { create: true });
+    const fontsHandle = await assetsHandle.getDirectoryHandle('fonts', { create: true });
+    const settingsHandle = await assetsHandle.getFileHandle('settings.json', { create: true });
     const scenariosHandle = await rootHandle.getDirectoryHandle('scenarios', { create: true });
     const stageBufferHandle = await rootHandle.getDirectoryHandle('stage-buffer', { create: true });
     const file = await roundsHandle.getFile();
@@ -938,10 +1404,13 @@ async function loadFromRoot(rootHandle) {
       showError('Не удалось прочитать rounds.json — файл повреждён или содержит не-JSON данные.');
       return;
     }
-    state.rootHandle = rootHandle;
     state.roundsHandle = roundsHandle;
     state.imagesHandle = imagesHandle;
     state.audioHandle = audioHandle;
+    state.backgroundHandle = backgroundHandle;
+    state.fontsHandle = fontsHandle;
+    state.settingsHandle = settingsHandle;
+    state.settings = await loadSettings(settingsHandle);
     state.scenariosHandle = scenariosHandle;
     state.stageBufferHandle = stageBufferHandle;
     state.rounds = rounds;
@@ -1143,25 +1612,37 @@ async function deleteScenario(name) {
   renderScenarios();
 }
 
-let dragScenarioFrom = null;
-
 function renderScenarios() {
-  scenariosPanel.innerHTML = '';
-  if (!state.scenariosHandle) return;
+  renderStoragePanel({
+    panel: scenariosPanel,
+    handle: state.scenariosHandle,
+    expandedKey: 'scenariosExpanded',
+    title: 'Сценарии',
+    items: state.scenarios,
+    emptyText: 'Пока нет сохранённых сценариев.',
+    renderRow: renderScenarioRow,
+    rerender: renderScenarios,
+  });
+}
+
+// Collapsible storage box shared by the scenarios and saved-stages panels.
+function renderStoragePanel({ panel, handle, expandedKey, title, items, emptyText, renderRow, rerender }) {
+  panel.innerHTML = '';
+  if (!handle) return;
 
   const box = document.createElement('div');
-  box.className = 'scenarios-box' + (state.scenariosExpanded ? ' expanded' : '');
+  box.className = 'scenarios-box' + (state[expandedKey] ? ' expanded' : '');
 
   const header = document.createElement('div');
   header.className = 'scenarios-header';
   header.onclick = () => {
-    state.scenariosExpanded = !state.scenariosExpanded;
-    renderScenarios();
+    state[expandedKey] = !state[expandedKey];
+    rerender();
   };
 
-  const title = document.createElement('span');
-  title.textContent = 'Сценарии';
-  header.appendChild(title);
+  const titleEl = document.createElement('span');
+  titleEl.textContent = title;
+  header.appendChild(titleEl);
 
   const chevron = document.createElement('span');
   chevron.className = 'chevron';
@@ -1170,28 +1651,24 @@ function renderScenarios() {
 
   box.appendChild(header);
 
-  if (state.scenariosExpanded) {
+  if (state[expandedKey]) {
     const list = document.createElement('div');
     list.className = 'scenarios-list';
-
-    if (state.scenarios.length === 0) {
+    if (items.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'scenarios-empty';
-      empty.textContent = 'Пока нет сохранённых сценариев.';
+      empty.textContent = emptyText;
       list.appendChild(empty);
     } else {
-      state.scenarios.forEach((name, index) => {
-        list.appendChild(renderScenarioRow(name, index));
-      });
+      items.forEach((name) => list.appendChild(renderRow(name)));
     }
-
     box.appendChild(list);
   }
 
-  scenariosPanel.appendChild(box);
+  panel.appendChild(box);
 }
 
-function renderScenarioRow(name, index) {
+function renderScenarioRow(name) {
   const row = document.createElement('div');
   row.className = 'scenario-row';
 
@@ -1201,11 +1678,13 @@ function renderScenarioRow(name, index) {
   const handle = document.createElement('span');
   handle.className = 'drag-handle';
   handle.textContent = '⠿';
-  handle.draggable = true;
   handle.title = 'Перетащите, чтобы изменить порядок';
-  handle.addEventListener('dragstart', (e) => {
-    dragScenarioFrom = index;
-    e.dataTransfer.effectAllowed = 'move';
+  attachSortHandle(handle, row, async (from, to) => {
+    const [moved] = state.scenarios.splice(from, 1);
+    state.scenarios.splice(to, 0, moved);
+    await saveScenarioOrder();
+    renderScenarios();
+    return scenariosPanel.querySelectorAll('.scenario-row')[to];
   });
   top.appendChild(handle);
 
@@ -1227,71 +1706,20 @@ function renderScenarioRow(name, index) {
   top.appendChild(actions);
   row.appendChild(top);
 
-  row.addEventListener('dragover', (e) => {
-    if (dragScenarioFrom === null) return;
-    e.preventDefault();
-    row.classList.add('drag-over');
-  });
-  row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
-  row.addEventListener('drop', async (e) => {
-    e.preventDefault();
-    row.classList.remove('drag-over');
-    const from = dragScenarioFrom;
-    dragScenarioFrom = null;
-    if (from === null || from === index) return;
-    const [moved] = state.scenarios.splice(from, 1);
-    state.scenarios.splice(index, 0, moved);
-    await saveScenarioOrder();
-    renderScenarios();
-  });
-
   return row;
 }
 
 function renderStageBufferPanel() {
-  stageBufferPanel.innerHTML = '';
-  if (!state.stageBufferHandle) return;
-
-  const box = document.createElement('div');
-  box.className = 'scenarios-box' + (state.stageBufferExpanded ? ' expanded' : '');
-
-  const header = document.createElement('div');
-  header.className = 'scenarios-header';
-  header.onclick = () => {
-    state.stageBufferExpanded = !state.stageBufferExpanded;
-    renderStageBufferPanel();
-  };
-
-  const title = document.createElement('span');
-  title.textContent = 'Этапы';
-  header.appendChild(title);
-
-  const chevron = document.createElement('span');
-  chevron.className = 'chevron';
-  chevron.innerHTML = ICON_CHEVRON;
-  header.appendChild(chevron);
-
-  box.appendChild(header);
-
-  if (state.stageBufferExpanded) {
-    const list = document.createElement('div');
-    list.className = 'scenarios-list';
-
-    if (state.stageBuffer.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'scenarios-empty';
-      empty.textContent = 'Пока нет сохранённых этапов.';
-      list.appendChild(empty);
-    } else {
-      state.stageBuffer.forEach((name) => {
-        list.appendChild(renderStageBufferRow(name));
-      });
-    }
-
-    box.appendChild(list);
-  }
-
-  stageBufferPanel.appendChild(box);
+  renderStoragePanel({
+    panel: stageBufferPanel,
+    handle: state.stageBufferHandle,
+    expandedKey: 'stageBufferExpanded',
+    title: 'Этапы',
+    items: state.stageBuffer,
+    emptyText: 'Пока нет сохранённых этапов.',
+    renderRow: renderStageBufferRow,
+    rerender: renderStageBufferPanel,
+  });
 }
 
 function renderStageBufferRow(name) {
@@ -1456,10 +1884,8 @@ function renderBufferDropdown() {
     label.onclick = () => addBufferRoundToCurrent(name);
     row.appendChild(label);
 
-    const delBtn = document.createElement('button');
-    delBtn.className = 'buffer-dropdown-delete';
-    delBtn.textContent = '✕';
-    delBtn.title = 'Удалить из хранилища';
+    const delBtn = createIconBtn(ICON_TRASH, 'Удалить из хранилища', true);
+    delBtn.classList.add('compact');
     delBtn.onclick = (e) => {
       e.stopPropagation();
       deleteRoundFromBuffer(name);
@@ -1479,6 +1905,9 @@ const ICON_STACK_PUSH = svgIcon('<path d="M12 3v8"/><path d="M8.5 7.5L12 11l3.5-
 const ICON_LOAD = svgIcon('<g transform="rotate(-90 12 12)"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/></g>');
 const ICON_PLUS = svgIcon('<path d="M12 5v14M5 12h14"/>');
 const ICON_CHEVRON = svgIcon('<path d="M9 5l7 7-7 7"/>');
+const ICON_PLAY = svgIcon('<path d="M8 5.5v13l10.5-6.5z"/>');
+const ICON_STOP = svgIcon('<rect x="6.5" y="6.5" width="11" height="11" rx="2"/>');
+const ICON_REPLACE = svgIcon('<path d="M4.5 11a7.5 7.5 0 0 1 13.2-4.3L20 9"/><path d="M20 4.5V9h-4.5"/><path d="M19.5 13a7.5 7.5 0 0 1-13.2 4.3L4 15"/><path d="M4 19.5V15h4.5"/>');
 
 function createIconBtn(iconSvg, title, danger) {
   const btn = document.createElement('button');
@@ -1513,6 +1942,178 @@ document.addEventListener('pointerout', (e) => {
 document.addEventListener('pointerdown', hideGlassTip);
 window.addEventListener('scroll', hideGlassTip, true);
 
+// ---------- Drag-to-reorder: the row lifts off, follows the pointer and its neighbours slide aside ----------
+// Rows are the siblings sharing the row's first class. onDrop(from, to) applies the move, re-renders and
+// returns the re-rendered row so it can flash; onLift/onCancel let a row change shape while it is carried.
+const SORT_EASE = 'cubic-bezier(.2,.8,.2,1)';
+
+function attachSortHandle(handle, row, onDrop, { onLift, onCancel } = {}) {
+  handle.addEventListener('pointerdown', (e) => {
+    if (e.button !== 0) return;
+    e.preventDefault();
+    e.stopPropagation();
+    handle.setPointerCapture(e.pointerId);
+    beginSort(e, row, onDrop, onLift, onCancel);
+  });
+}
+
+function beginSort(downEvent, row, onDrop, onLift, onCancel) {
+  const list = row.parentElement;
+  const header = document.querySelector('header');
+  let s = null;
+  let lastEvent = downEvent;
+
+  function lift() {
+    if (onLift) onLift();
+    const rows = [...list.children].filter((el) => el.classList.contains(row.classList[0]));
+    const listTop = list.getBoundingClientRect().top;
+    const rects = rows.map((r) => r.getBoundingClientRect());
+    const from = rows.indexOf(row);
+    const rect = rects[from];
+    const tops = rects.map((r) => r.top - listTop);
+    const hs = rects.map((r) => r.height);
+
+    // The ghost floats on <body> so rounded, overflow-clipped lists can't cut off its shadow or tilt.
+    const ghost = row.cloneNode(true);
+    copyFieldValues(row, ghost);
+    ghost.classList.remove('sort-landed');
+    ghost.classList.add('sort-ghost');
+    ghost.style.width = rect.width + 'px';
+    ghost.style.left = rect.left + 'px';
+    ghost.style.top = rect.top + 'px';
+    ghost.style.fontSize = getComputedStyle(row).fontSize;
+    document.body.appendChild(ghost);
+
+    row.classList.add('sort-placeholder');
+    rows.forEach((r) => { r.style.transition = 'transform .22s ' + SORT_EASE; });
+    document.body.classList.add('sorting');
+    hideGlassTip();
+
+    s = {
+      rows, from, to: from, tops, hs, ghost,
+      H: hs[from],
+      gap: rows.length > 1 ? tops[1] - tops[0] - hs[0] : 0,
+      grabY: downEvent.clientY - rect.top,
+      maxTilt: Math.max(0.6, Math.min(2.5, 600 / rect.width)),
+      tilt: 0, vy: 0, lastY: downEvent.clientY, slotTop: tops[from], raf: 0,
+    };
+    s.raf = requestAnimationFrame(frame);
+  }
+
+  function update() {
+    const listTop = list.getBoundingClientRect().top;
+    const last = s.rows.length - 1;
+    const minTop = listTop + s.tops[0] - 6;
+    const maxTop = listTop + s.tops[last] + s.hs[last] - s.H + 6;
+    const ghostTop = Math.max(minTop, Math.min(maxTop, lastEvent.clientY - s.grabY));
+    s.ghost.style.top = ghostTop + 'px';
+
+    const center = ghostTop - listTop + s.H / 2;
+    let to = s.from;
+    for (let i = s.from + 1; i <= last; i++) if (center > s.tops[i] + s.hs[i] / 2) to = i;
+    for (let i = s.from - 1; i >= 0; i--) if (center < s.tops[i] + s.hs[i] / 2) to = i;
+    s.to = to;
+
+    const shift = s.H + s.gap;
+    s.rows.forEach((r, i) => {
+      if (i === s.from) return;
+      let dy = 0;
+      if (s.from < to && i > s.from && i <= to) dy = -shift;
+      if (to < s.from && i >= to && i < s.from) dy = shift;
+      r.style.transform = dy ? 'translateY(' + dy + 'px)' : '';
+    });
+    s.slotTop = to > s.from ? s.tops[to] + s.hs[to] - s.H : to < s.from ? s.tops[to] : s.tops[s.from];
+    row.style.transform = 'translateY(' + (s.slotTop - s.tops[s.from]) + 'px)';
+  }
+
+  function frame() {
+    const lr = list.getBoundingClientRect();
+    const topEdge = header.getBoundingClientRect().bottom;
+    if (lr.top < topEdge || lr.bottom > window.innerHeight) {
+      const y = lastEvent.clientY;
+      let v = 0;
+      if (y < topEdge + 60) v = -Math.ceil((topEdge + 60 - y) / 5);
+      else if (y > window.innerHeight - 60) v = Math.ceil((y - window.innerHeight + 60) / 5);
+      if (v) {
+        window.scrollBy(0, v);
+        update();
+      }
+    }
+    // Carried rows swing toward the direction of travel and settle when the pointer rests, like the balloons.
+    s.tilt += (Math.max(-s.maxTilt, Math.min(s.maxTilt, s.vy * 0.35)) - s.tilt) * 0.35;
+    s.vy *= 0.6;
+    s.ghost.style.transform = 'scale(1.02) rotate(' + s.tilt.toFixed(2) + 'deg)';
+    s.raf = requestAnimationFrame(frame);
+  }
+
+  function onMove(e) {
+    lastEvent = e;
+    if (!s) {
+      if (Math.hypot(e.clientX - downEvent.clientX, e.clientY - downEvent.clientY) < 4) return;
+      lift();
+    }
+    s.vy = e.clientY - s.lastY;
+    s.lastY = e.clientY;
+    update();
+  }
+
+  function onUp() {
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+    if (!s) return;
+    const done = s;
+    s = null;
+    cancelAnimationFrame(done.raf);
+    suppressNextClick();
+    document.body.classList.remove('sorting');
+
+    done.ghost.style.transition = 'top .2s ' + SORT_EASE + ', transform .2s ' + SORT_EASE;
+    done.ghost.style.top = (list.getBoundingClientRect().top + done.slotTop) + 'px';
+    done.ghost.style.transform = 'scale(1) rotate(0deg)';
+
+    setTimeout(async () => {
+      done.ghost.remove();
+      done.rows.forEach((r) => { r.style.transition = 'none'; r.style.transform = ''; });
+      row.classList.remove('sort-placeholder');
+      void list.offsetHeight;
+      done.rows.forEach((r) => { r.style.transition = ''; });
+      if (done.to === done.from) {
+        if (onCancel) onCancel();
+        return;
+      }
+      const landed = await onDrop(done.from, done.to);
+      if (landed) flashLanded(landed);
+    }, 200);
+  }
+
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', onUp);
+  window.addEventListener('pointercancel', onUp);
+}
+
+function copyFieldValues(from, to) {
+  const src = from.querySelectorAll('input, textarea, select');
+  const dst = to.querySelectorAll('input, textarea, select');
+  src.forEach((el, i) => {
+    if (dst[i] && el.type !== 'file') dst[i].value = el.value;
+  });
+}
+
+// The click that follows a drag's pointerup must not toggle the card the handle sits in.
+function suppressNextClick() {
+  const stop = (e) => { e.stopPropagation(); e.preventDefault(); };
+  window.addEventListener('click', stop, { capture: true, once: true });
+  setTimeout(() => window.removeEventListener('click', stop, { capture: true }), 0);
+}
+
+function flashLanded(el) {
+  el.classList.remove('sort-landed');
+  void el.offsetWidth;
+  el.classList.add('sort-landed');
+  el.addEventListener('animationend', () => el.classList.remove('sort-landed'), { once: true });
+}
+
 function renderRoundCard(round, index) {
   const card = document.createElement('div');
   card.className = 'round-card' + (state.expanded.has(index) ? ' expanded' : '');
@@ -1524,12 +2125,23 @@ function renderRoundCard(round, index) {
   const handle = document.createElement('span');
   handle.className = 'drag-handle';
   handle.textContent = '⠿';
-  handle.draggable = true;
   handle.title = 'Перетащите, чтобы изменить порядок';
-  handle.addEventListener('dragstart', (e) => {
-    state.dragRoundFrom = index;
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', String(index));
+  // An expanded card is carried as just its header, then reopens wherever it lands.
+  const setBodyShown = (shown) => {
+    const body = card.querySelector('.round-body');
+    if (body) body.style.display = shown ? '' : 'none';
+  };
+  attachSortHandle(handle, card, (from, to) => {
+    const expandedRounds = new Set([...state.expanded].map((i) => state.rounds[i]));
+    const [moved] = state.rounds.splice(from, 1);
+    state.rounds.splice(to, 0, moved);
+    state.expanded = new Set(state.rounds.flatMap((r, i) => (expandedRounds.has(r) ? [i] : [])));
+    markDirty();
+    render();
+    return app.querySelector('.round-card[data-index="' + to + '"]');
+  }, {
+    onLift: () => setBodyShown(false),
+    onCancel: () => setBodyShown(true),
   });
   head.appendChild(handle);
 
@@ -1577,24 +2189,6 @@ function renderRoundCard(round, index) {
     render();
   });
   card.appendChild(head);
-
-  card.addEventListener('dragover', (e) => {
-    if (state.dragRoundFrom === null) return;
-    e.preventDefault();
-    card.classList.add('drag-over');
-  });
-  card.addEventListener('dragleave', () => card.classList.remove('drag-over'));
-  card.addEventListener('drop', (e) => {
-    e.preventDefault();
-    card.classList.remove('drag-over');
-    const from = state.dragRoundFrom;
-    state.dragRoundFrom = null;
-    if (from === null || from === index) return;
-    const [moved] = state.rounds.splice(from, 1);
-    state.rounds.splice(index, 0, moved);
-    markDirty();
-    render();
-  });
 
   if (state.expanded.has(index)) {
     card.appendChild(renderRoundBody(round, index));
@@ -1684,9 +2278,7 @@ function renderRoundBody(round, index) {
     });
     body.appendChild(list);
 
-    const addQBtn = document.createElement('button');
-    addQBtn.textContent = '+ Добавить вопрос';
-    addQBtn.className = 'small-btn';
+    const addQBtn = createIconBtn(ICON_PLUS, 'Добавить вопрос');
     addQBtn.onclick = () => {
       round.questions.push({ text: '' });
       markDirty();
@@ -1706,8 +2298,6 @@ function renderNameOnly(index, value) {
   if (nameEl) nameEl.textContent = value || '(без названия)';
 }
 
-let dragQuestionFrom = null;
-
 function renderQuestionRow(round, qIndex) {
   const q = round.questions[qIndex];
   const isImage = !!q.image;
@@ -1718,11 +2308,14 @@ function renderQuestionRow(round, qIndex) {
   const handle = document.createElement('span');
   handle.className = 'drag-handle';
   handle.textContent = '⠿';
-  handle.draggable = true;
-  handle.addEventListener('dragstart', (e) => {
-    dragQuestionFrom = qIndex;
-    e.dataTransfer.effectAllowed = 'move';
-    e.stopPropagation();
+  handle.title = 'Перетащите, чтобы изменить порядок';
+  attachSortHandle(handle, row, (from, to) => {
+    const [moved] = round.questions.splice(from, 1);
+    round.questions.splice(to, 0, moved);
+    markDirty();
+    render();
+    const card = app.querySelector('.round-card[data-index="' + state.rounds.indexOf(round) + '"]');
+    return card && card.querySelectorAll('.question-row')[to];
   });
   row.appendChild(handle);
 
@@ -1764,10 +2357,7 @@ function renderQuestionRow(round, qIndex) {
 
   const actions = document.createElement('div');
   actions.className = 'row-actions';
-  const removeBtn = document.createElement('button');
-  removeBtn.className = 'danger small-btn';
-  removeBtn.textContent = '✕';
-  removeBtn.title = 'Удалить вопрос';
+  const removeBtn = createIconBtn(ICON_TRASH, 'Удалить вопрос', true);
   removeBtn.onclick = () => {
     round.questions.splice(qIndex, 1);
     markDirty();
@@ -1775,26 +2365,6 @@ function renderQuestionRow(round, qIndex) {
   };
   actions.appendChild(removeBtn);
   row.appendChild(actions);
-
-  row.addEventListener('dragover', (e) => {
-    if (dragQuestionFrom === null) return;
-    e.preventDefault();
-    e.stopPropagation();
-    row.classList.add('drag-over');
-  });
-  row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
-  row.addEventListener('drop', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    row.classList.remove('drag-over');
-    const from = dragQuestionFrom;
-    dragQuestionFrom = null;
-    if (from === null || from === qIndex) return;
-    const [moved] = round.questions.splice(from, 1);
-    round.questions.splice(qIndex, 0, moved);
-    markDirty();
-    render();
-  });
 
   return row;
 }
@@ -1812,9 +2382,7 @@ function renderImageEditor(q) {
     path.className = 'path';
     path.textContent = q.image;
     preview.appendChild(path);
-    const changeBtn = document.createElement('button');
-    changeBtn.className = 'small-btn';
-    changeBtn.textContent = 'Заменить…';
+    const changeBtn = createIconBtn(ICON_REPLACE, 'Заменить картинку');
     changeBtn.onclick = () => pickImageForQuestion(q);
     preview.appendChild(changeBtn);
     wrap.appendChild(preview);
@@ -2116,7 +2684,7 @@ const cubeArt = (function initCubeArt() {
   return { HUES, rgba, rand, roundPoly, makeSprite };
 })();
 
-// ---------- Hero banner: glass cube balloons on strings over "РЕДАКТОР" ----------
+// ---------- Hero banner: glass cube balloons on strings over "КОНСТРУКТОР" ----------
 const heroBalloons = (function initHeroBalloons() {
   const canvas = document.getElementById('heroCanvas');
   const ctx = canvas.getContext('2d');
@@ -2149,16 +2717,25 @@ const heroBalloons = (function initHeroBalloons() {
   const noisePattern = ctx.createPattern(noise, 'repeat');
 
   function drawWord(c, blurPx) {
-    const size = Math.max(48, Math.min(160, W * 0.11));
-    const spacing = size * 0.45;
+    const chars = Array.from('КОНСТРУКТОР');
+    const SPACING = 0.45;
+    const setFont = (px) => {
+      c.font = '200 ' + px + 'px Bahnschrift, "Segoe UI", sans-serif';
+      if ('fontStretch' in c) c.fontStretch = 'condensed';
+    };
+    const measure = (px) => {
+      setFont(px);
+      const widths = chars.map((ch) => c.measureText(ch).width);
+      return { widths, total: widths.reduce((a, b) => a + b, 0) + px * SPACING * (chars.length - 1) };
+    };
     c.save();
+    // Scale the word to fill at most 84% of the hero width, whatever its length.
+    const probe = measure(100);
+    const size = Math.min(160, W * 0.11, (W * 0.84) / (probe.total / 100));
+    const spacing = size * SPACING;
+    const { widths, total } = measure(size);
     if (blurPx) c.filter = 'blur(' + blurPx.toFixed(1) + 'px)';
-    c.font = '200 ' + size + 'px Bahnschrift, "Segoe UI", sans-serif';
-    if ('fontStretch' in c) c.fontStretch = 'condensed';
     c.textBaseline = 'middle';
-    const chars = Array.from('РЕДАКТОР');
-    const widths = chars.map((ch) => c.measureText(ch).width);
-    const total = widths.reduce((a, b) => a + b, 0) + spacing * (chars.length - 1);
     const left = W / 2 - total / 2;
     const put = (dx, color) => {
       let x = left + dx;
