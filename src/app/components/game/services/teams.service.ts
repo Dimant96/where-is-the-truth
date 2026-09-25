@@ -3,6 +3,7 @@ import {BehaviorSubject, Observable} from 'rxjs';
 import {Team} from '../interfaces/team.interface';
 import {teamsStorageKey} from './constants/teams-storage-key.const';
 import {defaultTeams} from './constants/default-teams.const';
+import {startTeamNames} from './constants/game-flow.const';
 import settings from '../../../../assets/settings.json';
 
 const defaultScoreBumpValue = 100;
@@ -30,9 +31,13 @@ export class TeamsService {
 
     init() {
         const storageTeamsString = localStorage.getItem(teamsStorageKey);
-        const storageTeams = storageTeamsString ? JSON.parse(storageTeamsString) : defaultTeams;
+        const storageTeams: Team[] = storageTeamsString ? JSON.parse(storageTeamsString) : defaultTeams;
+        const teams = storageTeams.map(team => ({
+            ...team,
+            roundScores: Array.isArray(team.roundScores) ? team.roundScores : [],
+        }));
 
-        this.teamsStore$.next(storageTeams);
+        this.teamsStore$.next(teams);
         this.teamsStore$.subscribe(teams => {
             localStorage.setItem(teamsStorageKey, JSON.stringify(teams));
         });
@@ -43,8 +48,9 @@ export class TeamsService {
     }
 
     bumpScore(teamIndex: number) {
-        const teams = [...this.teams];
-        teams[teamIndex].score += scoreBumpValue;
+        const teams = this.teams.map((team, index) => index === teamIndex
+            ? {...team, score: team.score + scoreBumpValue}
+            : team);
 
         this.teamsStore$.next(teams);
     }
@@ -54,23 +60,46 @@ export class TeamsService {
     }
 
     bumpWinnerTeam(teamIndex: number) {
-        const teams = [...this.teams];
-        teams[teamIndex].winner += winnerBumpValue;
+        const teams = this.teams.map((team, index) => index === teamIndex
+            ? {...team, winner: team.winner + winnerBumpValue}
+            : team);
 
         this.teamsStore$.next(teams);
     }
 
     resetTeams() {
-        this.teamsStore$.next(defaultTeams);
+        this.teamsStore$.next(defaultTeams.map((team, index) => ({
+            ...team,
+            name: startTeamNames[index],
+            roundScores: [],
+        })));
     }
 
-    resetScore() {
+    // Entering a stage shows what the teams already earned in it, so leaving and coming back doesn't lose points.
+    startRoundScore(round: number) {
         const teams = this.teams.map(team => ({
             ...team,
-            score: 0,
+            score: team.roundScores[round] || 0,
         }));
 
         this.teamsStore$.next(teams);
+    }
+
+    commitRoundScore(round: number) {
+        const teams = this.teams.map(team => {
+            const roundScores = [...team.roundScores];
+            roundScores[round] = team.score;
+
+            return {...team, score: 0, roundScores};
+        });
+
+        this.teamsStore$.next(teams);
+    }
+
+    totalScore(team: Team, lastRound: number): number {
+        return team.roundScores
+            .slice(0, lastRound + 1)
+            .reduce((sum, score) => sum + (score || 0), 0);
     }
 
     updateTeamsNames(names: string[]) {

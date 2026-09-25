@@ -8,14 +8,6 @@ export class RoundService {
         return rounds[round] as Round;
     }
 
-    isLastRound(round: number): boolean {
-        return round === rounds.length - 1;
-    }
-
-    isFirsRound(round: number): boolean {
-        return round === 0;
-    }
-
     isRoundHasQuestion(round: number) {
         return this.getRound(round).questions;
     }

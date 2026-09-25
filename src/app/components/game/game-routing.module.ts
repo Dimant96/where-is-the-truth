@@ -4,6 +4,7 @@ import {WelcomeComponent} from './components/welcome/welcome.component';
 import {StartComponent} from './components/start/start.component';
 import {GameComponent} from './game.component';
 import {EndComponent} from './components/end/end.component';
+import {FirstStepGuard} from './services/first-step.guard';
 
 const routes: Routes = [
     {
@@ -28,7 +29,9 @@ const routes: Routes = [
             },
             {
                 path: '',
-                redirectTo: 'welcome',
+                pathMatch: 'full',
+                canActivate: [FirstStepGuard],
+                children: [],
             },
         ]
     },

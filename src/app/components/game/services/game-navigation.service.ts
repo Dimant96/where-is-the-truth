@@ -1,31 +1,35 @@
 import {Injectable} from '@angular/core';
-import {Router} from '@angular/router';
+import {Router, UrlTree} from '@angular/router';
+import {GameStep} from '../interfaces/game-step.interface';
 
 @Injectable()
 export class GameNavigationService {
     constructor(private router: Router) {}
 
-    goToStart() {
-        this.router.navigate(['start']);
+    goTo(step: GameStep) {
+        this.router.navigate(this.stepCommands(step));
     }
 
-    goToEnd() {
-        this.router.navigate(['end']);
+    urlTreeFor(step: GameStep): UrlTree {
+        return this.router.createUrlTree(this.stepCommands(step));
     }
 
     goToQuestion(round: number, question: number) {
         this.router.navigate(['play', round, question]);
     }
 
-    goToResult(round: number) {
-        this.router.navigate(['play', round, 'result']);
-    }
-
-    goToPreview(round: number) {
-        this.router.navigate(['play', round, 'preview']);
-    }
-
-    goToWelcome() {
-        this.router.navigate(['welcome']);
+    private stepCommands(step: GameStep): (string | number)[] {
+        switch (step.kind) {
+            case 'welcome':
+                return ['welcome'];
+            case 'teams':
+                return ['start'];
+            case 'end':
+                return ['end'];
+            case 'round':
+                return ['play', step.round, 0];
+            default:
+                return ['play', step.round, step.kind];
+        }
     }
 }

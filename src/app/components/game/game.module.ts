@@ -8,6 +8,8 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {TeamsService} from './services/teams.service';
 import { EndComponent } from './components/end/end.component';
 import {GameNavigationService} from './services/game-navigation.service';
+import {GameFlowService} from './services/game-flow.service';
+import {FirstStepGuard} from './services/first-step.guard';
 
 @NgModule({
     declarations: [GameComponent, WelcomeComponent, StartComponent, EndComponent],
@@ -16,7 +18,7 @@ import {GameNavigationService} from './services/game-navigation.service';
         GameRoutingModule,
         ReactiveFormsModule
     ],
-    providers: [TeamsService, GameNavigationService],
+    providers: [TeamsService, GameNavigationService, GameFlowService, FirstStepGuard],
 })
 export class GameModule {
 }

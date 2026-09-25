@@ -1,8 +1,9 @@
-import {Component, ChangeDetectionStrategy, HostListener} from '@angular/core';
+import {Component, ChangeDetectionStrategy, HostListener, OnInit} from '@angular/core';
 import {ActivatedRoute} from '@angular/router';
 import {RoundService} from '../../services/round.service';
 import {map} from 'rxjs/operators';
-import {GameNavigationService} from '../../../../services/game-navigation.service';
+import {GameFlowService} from '../../../../services/game-flow.service';
+import {GameStep} from '../../../../interfaces/game-step.interface';
 import settings from '../../../../../../../assets/settings.json';
 
 const defaultStageWord = 'Этап';
@@ -14,7 +15,7 @@ const configuredStageWord = (settings as {stageWord?: unknown}).stageWord;
     styleUrls: ['./preview.component.less'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PreviewComponent {
+export class PreviewComponent implements OnInit {
     readonly stageWord = typeof configuredStageWord === 'string' && configuredStageWord.trim()
         ? configuredStageWord.trim()
         : defaultStageWord;
@@ -26,24 +27,27 @@ export class PreviewComponent {
 
     @HostListener('document:keydown.ArrowRight')
     keydownArrowRight() {
-        this.gameNavigationService.goToQuestion(this.round, 0);
+        this.gameFlowService.next(this.step);
     }
 
     @HostListener('document:keydown.ArrowLeft')
     keydownArrowLeft() {
-        if (this.roundService.isFirsRound(this.round)) {
-            this.gameNavigationService.goToStart();
-            return;
-        }
-
-        this.gameNavigationService.goToResult(this.round - 1);
+        this.gameFlowService.prev(this.step);
     }
 
     constructor(
         private activatedRoute: ActivatedRoute,
         private roundService: RoundService,
-        private gameNavigationService: GameNavigationService,
+        private gameFlowService: GameFlowService,
     ) {}
+
+    ngOnInit() {
+        this.gameFlowService.enter(this.step);
+    }
+
+    get step(): GameStep {
+        return {kind: 'preview', round: this.round};
+    }
 
     get round(): number {
         return +this.activatedRoute.parent.snapshot.params.round;

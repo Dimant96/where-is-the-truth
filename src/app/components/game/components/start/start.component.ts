@@ -3,7 +3,11 @@ import {FormArray, FormBuilder, Validators} from '@angular/forms';
 import {debounceTime} from 'rxjs/operators';
 import {TeamsService} from '../../services/teams.service';
 import {TeamsOrder} from '../../enums/teams-order.enum';
-import {GameNavigationService} from '../../services/game-navigation.service';
+import {GameFlowService} from '../../services/game-flow.service';
+import {GameStep} from '../../interfaces/game-step.interface';
+import {gameFlow} from '../../services/constants/game-flow.const';
+
+const step: GameStep = {kind: 'teams'};
 
 @Component({
     selector: 'app-start',
@@ -14,26 +18,29 @@ import {GameNavigationService} from '../../services/game-navigation.service';
 export class StartComponent implements OnInit {
     readonly firsTeams = TeamsOrder.First;
     readonly secondTeams = TeamsOrder.Second;
+    readonly isPresetNames = gameFlow.teamsMode === 'preset';
+    readonly teams$ = this.teamsService.teams$;
 
     teamsNamesForm: FormArray;
 
     @HostListener('document:keydown.ArrowRight')
     keydownArrowRight() {
-        this.gameNavigationService.goToPreview(0);
+        this.gameFlowService.next(step);
     }
 
     @HostListener('document:keydown.ArrowLeft')
     keydownArrowLeft() {
-        this.gameNavigationService.goToWelcome();
+        this.gameFlowService.prev(step);
     }
 
     constructor(
         private formBuilder: FormBuilder,
         private teamsService: TeamsService,
-        private gameNavigationService: GameNavigationService,
+        private gameFlowService: GameFlowService,
     ) {}
 
     ngOnInit(): void {
+        this.gameFlowService.enter(step);
         this.initForm();
         this.listenChangeForm();
     }

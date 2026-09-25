@@ -1,12 +1,19 @@
-<form class="wrapper" [formGroup]="teamsNamesForm">
-    <div class="first-team">
-        <label>
-            <input class="team-name" [formControlName]="firsTeams">
-        </label>
+<div *ngIf="isPresetNames; else namesForm" class="teams__result">
+    <div class="teams__result__wrapper" *ngFor="let team of teams$ | async">
+        <h2>{{team.name}}</h2>
     </div>
-    <div class="second-team">
-        <label>
-            <input class="team-name" [formControlName]="secondTeams">
-        </label>
-    </div>
-</form>
+</div>
+<ng-template #namesForm>
+    <form class="wrapper" [formGroup]="teamsNamesForm">
+        <div class="first-team">
+            <label>
+                <input class="team-name" [formControlName]="firsTeams">
+            </label>
+        </div>
+        <div class="second-team">
+            <label>
+                <input class="team-name" [formControlName]="secondTeams">
+            </label>
+        </div>
+    </form>
+</ng-template>

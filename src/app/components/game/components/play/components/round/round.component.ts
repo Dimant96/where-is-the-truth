@@ -1,12 +1,14 @@
-import {Component, OnInit, ChangeDetectionStrategy, HostListener} from '@angular/core';
+import {Component, OnInit, OnDestroy, ChangeDetectionStrategy, HostListener} from '@angular/core';
 import {RoundService} from '../../services/round.service';
 import {TeamsService} from '../../../../services/teams.service';
 import {ActivatedRoute} from '@angular/router';
 import {GameNavigationService} from '../../../../services/game-navigation.service';
+import {GameFlowService} from '../../../../services/game-flow.service';
+import {GameStep} from '../../../../interfaces/game-step.interface';
 import {RoundType} from '../../enums/round-type.enum';
-import {map, tap} from 'rxjs/operators';
+import {distinctUntilChanged, map, tap} from 'rxjs/operators';
 import {TimerService} from '../../services/timer.service';
-import {Observable} from 'rxjs';
+import {Observable, Subscription} from 'rxjs';
 import {playAudio} from '../../../../utils/play-audio';
 import {AudioPath} from '../../../../enums/audio.enum';
 
@@ -17,7 +19,7 @@ import {AudioPath} from '../../../../enums/audio.enum';
     providers: [TimerService],
     changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class RoundComponent implements OnInit {
+export class RoundComponent implements OnInit, OnDestroy {
     readonly questionRound = RoundType.Question;
     readonly questionWithTimerRound = RoundType.QuestionWithTimer;
     readonly timerRound = RoundType.Timer;
@@ -44,12 +46,15 @@ export class RoundComponent implements OnInit {
     isWaitingResponse = false;
     isRoundStart = false;
 
+    private roundSubscription: Subscription;
+
     constructor(
         private roundService: RoundService,
         private teamsService: TeamsService,
         private activatedRoute: ActivatedRoute,
         private timerService: TimerService,
         private gameNavigationService: GameNavigationService,
+        private gameFlowService: GameFlowService,
     ) {}
 
     get questionNumberFromParams$(): Observable<number> {
@@ -60,13 +65,14 @@ export class RoundComponent implements OnInit {
 
     @HostListener('document:keydown.ArrowRight')
     keydownArrowRight() {
-        this.teamsService.resetScore();
-        this.gameNavigationService.goToResult(this.round);
+        this.teamsService.commitRoundScore(this.round);
+        this.gameFlowService.next(this.step);
     }
 
     @HostListener('document:keydown.ArrowLeft')
     keydownArrowLeft() {
-        this.gameNavigationService.goToPreview(this.round);
+        this.teamsService.commitRoundScore(this.round);
+        this.gameFlowService.prev(this.step);
     }
 
     @HostListener('document:keydown.g')
@@ -160,6 +166,31 @@ export class RoundComponent implements OnInit {
         if (this.teamsService.isTakeTurnsGame) {
             this.teamsService.toggleRespondingTeamMode();
         }
+
+        // Without a preview or a slide after it, one stage follows another on the same component,
+        // so every new stage starts over here rather than in the constructor.
+        this.roundSubscription = this.activatedRoute
+            .parent
+            .params
+            .pipe(
+                map(({round}) => +round),
+                distinctUntilChanged(),
+            )
+            .subscribe(round => {
+                this.gameFlowService.enter(this.step);
+                this.teamsService.startRoundScore(round);
+                this.timerService.stop();
+                this.isWaitingResponse = false;
+                this.isRoundStart = false;
+            });
+    }
+
+    ngOnDestroy() {
+        this.roundSubscription.unsubscribe();
+    }
+
+    get step(): GameStep {
+        return {kind: 'round', round: this.round};
     }
 
     get round(): number {

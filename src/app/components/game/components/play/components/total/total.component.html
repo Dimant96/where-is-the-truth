@@ -1,0 +1,6 @@
+<div class="teams__result">
+    <div class="teams__result__wrapper" *ngFor="let team of totals$ | async">
+        <h2>{{team.name}}</h2>
+        <h1>{{team.total}}</h1>
+    </div>
+</div>

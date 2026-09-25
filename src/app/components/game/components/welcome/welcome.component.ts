@@ -1,6 +1,8 @@
 import {Component, OnInit, ChangeDetectionStrategy, HostListener} from '@angular/core';
-import {TeamsService} from '../../services/teams.service';
-import {GameNavigationService} from '../../services/game-navigation.service';
+import {GameFlowService} from '../../services/game-flow.service';
+import {GameStep} from '../../interfaces/game-step.interface';
+
+const step: GameStep = {kind: 'welcome'};
 
 @Component({
     selector: 'app-welcome',
@@ -11,12 +13,17 @@ import {GameNavigationService} from '../../services/game-navigation.service';
 export class WelcomeComponent implements OnInit {
     @HostListener('document:keydown.ArrowRight')
     keydownArrowRight() {
-        this.gameNavigationService.goToStart();
+        this.gameFlowService.next(step);
     }
 
-    constructor(private teamsService: TeamsService, private gameNavigationService: GameNavigationService) {}
+    @HostListener('document:keydown.ArrowLeft')
+    keydownArrowLeft() {
+        this.gameFlowService.prev(step);
+    }
+
+    constructor(private gameFlowService: GameFlowService) {}
 
     ngOnInit() {
-        this.teamsService.resetTeams();
+        this.gameFlowService.enter(step);
     }
 }
