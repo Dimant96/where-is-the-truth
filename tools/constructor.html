@@ -28,38 +28,50 @@
     background: var(--bg);
     color: var(--text);
   }
+  /* No bar of its own: the header floats over the same backdrop as the page. Only its controls take clicks,
+     so the hero's balloons stay draggable behind it. Once the page scrolls, cards passing under it are
+     frosted so they don't collide with the buttons. */
   header {
     position: sticky;
     top: 0;
     z-index: 10;
-    background: var(--card-bg);
-    border-bottom: 1px solid var(--border);
+    background: transparent;
     height: 53px;
     padding: 0 24px;
     display: flex;
     align-items: center;
     gap: 12px;
     flex-wrap: nowrap;
+    pointer-events: none;
+    transition: backdrop-filter .2s, -webkit-backdrop-filter .2s;
+  }
+  header > * { pointer-events: auto; }
+  header.scrolled {
+    -webkit-backdrop-filter: blur(14px);
+    backdrop-filter: blur(14px);
   }
   header h1 {
-    font-size: 18px;
+    /* Same size as the tabs and the Save button beside it; weight alone marks it as the title. */
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 24px;
     margin: 0 16px 0 0;
     white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 9px;
     flex-shrink: 0;
   }
   header button {
     padding: 6px 14px;
-    font-size: 14px;
-    line-height: 18px;
+    font-size: 20px;
+    line-height: 24px;
     white-space: nowrap;
     flex-shrink: 0;
   }
   .cube-mark {
-    width: 17px;
-    height: 17px;
+    width: 19px;
+    height: 19px;
     flex-shrink: 0;
   }
   button {
@@ -155,6 +167,8 @@
   }
   .hero-banner {
     position: relative;
+    /* Starts behind the see-through header, so the balloon scene fills the whole window. */
+    margin-top: -53px;
     overflow: hidden;
     background: #08080a;
     user-select: none;
@@ -373,6 +387,83 @@
     color: var(--muted);
   }
   .bg-thumb.empty { border-style: dashed; }
+  .qbox-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 128px;
+    height: 72px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: #2c3a35 center / cover no-repeat;
+  }
+  .qbox-sample {
+    padding: 4px 12px;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  /* Two rows laid out as one grid — caption | slider | value or swatch — so both sliders start at the same x. */
+  .qbox-fields {
+    display: grid;
+    grid-template-columns: max-content max-content max-content;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .qbox-field { display: contents; }
+  .qbox-toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .qbox-range:disabled, .qbox-swatch:disabled { opacity: 0.35; }
+  /* Both sliders share one look: the track shows what the slider changes, the thumb is a white dot. */
+  .qbox-range {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 150px;
+    height: 16px;
+    margin: 0;
+    background: transparent;
+    cursor: pointer;
+  }
+  .qbox-range:disabled { cursor: not-allowed; }
+  .qbox-range::-webkit-slider-runnable-track {
+    height: 8px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: var(--track);
+  }
+  .qbox-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    margin-top: -5px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.35), 0 0 8px rgba(63,224,204,0.55);
+  }
+  .qbox-range-transparency {
+    --track: linear-gradient(to right, #000, rgba(0,0,0,0)),
+      repeating-conic-gradient(#5a5b62 0 25%, #8a8b92 0 50%) 0 0 / 8px 8px;
+  }
+  .qbox-range-hue {
+    --track: linear-gradient(to right,
+      hsl(0, 80%, 31%), hsl(60, 80%, 31%), hsl(120, 80%, 31%), hsl(180, 80%, 31%),
+      hsl(240, 80%, 31%), hsl(300, 80%, 31%), hsl(360, 80%, 31%));
+  }
+  .qbox-value { min-width: 36px; color: var(--text); }
+  .qbox-swatch {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    flex-shrink: 0;
+    border-radius: 5px;
+    border: 1px solid rgba(255,255,255,0.2);
+    cursor: pointer;
+    transition: transform .15s, box-shadow .15s;
+  }
+  .qbox-swatch:hover:not(:disabled) { transform: scale(1.12); box-shadow: 0 0 8px rgba(63,224,204,0.55); }
+  .qbox-swatch:disabled { cursor: not-allowed; }
   .font-preview { min-width: 220px; }
   .font-name { font-size: 12px; color: var(--muted); margin-bottom: 2px; }
   .font-sample { font-size: 22px; color: var(--text); line-height: 1.2; }
@@ -890,6 +981,7 @@ function designObjectUrl(file) {
 function renderGeneralSection(container) {
   container.appendChild(renderDesignBlock('Фоны', (block) => {
     BACKGROUND_SLOTS.forEach((slot) => block.appendChild(renderBackgroundSlot(slot)));
+    block.appendChild(renderQuestionBoxSlot());
   }));
   container.appendChild(renderDesignBlock('Шрифты', (block) => block.appendChild(renderFontSlot())));
   container.appendChild(renderDesignBlock('Звуки', (block) => {
@@ -1054,6 +1146,147 @@ async function deleteBackgroundFile(slot) {
     'Фон «' + slot.label + '» удалён',
   );
   if (removed) refreshDesign();
+}
+
+// ---------- Design: the box behind a question's text (settings.questionBox, read by question-box.const.ts) ----------
+// Stored as how dark the box is (opacity of black); the slider shows the opposite — how see-through it is.
+// The frame fades with the box, and its colour is only a hue: saturation and lightness stay those of the
+// original brown frame, hsl(32, 80%, 31%), the same formula the game uses.
+const QUESTION_BOX_DEFAULT = { opacity: 60, border: true, borderHue: 32 };
+
+function normalizeQuestionBox(raw) {
+  const box = raw && typeof raw === 'object' ? raw : {};
+  const clampRound = (value, max, fallback) => (Number.isFinite(value) ? Math.min(max, Math.max(0, Math.round(value))) : fallback);
+  return {
+    opacity: clampRound(box.opacity, 100, QUESTION_BOX_DEFAULT.opacity),
+    border: box.border !== false,
+    borderHue: clampRound(box.borderHue, 360, QUESTION_BOX_DEFAULT.borderHue),
+  };
+}
+
+function questionBorderColor(hue, alpha) {
+  return 'hsla(' + hue + ', 80%, 31%, ' + alpha + ')';
+}
+
+function renderQuestionBoxSlot() {
+  const { row, controls } = renderDesignSlot('Фон под вопросом');
+  const box = state.settings.questionBox;
+
+  // A small copy of the game's question box over the stage background, updated while dragging.
+  const preview = document.createElement('div');
+  preview.className = 'qbox-preview';
+  const sample = document.createElement('div');
+  sample.className = 'qbox-sample';
+  sample.textContent = 'Вопрос';
+  preview.appendChild(sample);
+  controls.appendChild(preview);
+  readDesignFile(state.backgroundHandle, 'first-team.jpg')
+    .then((file) => { preview.style.backgroundImage = 'url("' + designObjectUrl(file) + '")'; })
+    .catch(() => {});
+
+  const fields = document.createElement('div');
+  fields.className = 'qbox-fields';
+  controls.appendChild(fields);
+
+  const transparencyField = document.createElement('label');
+  transparencyField.className = 'qbox-field';
+  const transparencyLabel = document.createElement('span');
+  transparencyLabel.textContent = 'Прозрачность';
+  transparencyField.appendChild(transparencyLabel);
+  const slider = document.createElement('input');
+  slider.type = 'range';
+  slider.className = 'qbox-range qbox-range-transparency';
+  slider.min = '0';
+  slider.max = '100';
+  slider.value = String(100 - box.opacity);
+  const sliderValue = document.createElement('span');
+  sliderValue.className = 'qbox-value';
+  transparencyField.appendChild(slider);
+  transparencyField.appendChild(sliderValue);
+  fields.appendChild(transparencyField);
+
+  const borderField = document.createElement('div');
+  borderField.className = 'qbox-field';
+  const borderLabel = document.createElement('span');
+  borderLabel.textContent = 'Рамка';
+  const borderSwitch = document.createElement('input');
+  borderSwitch.type = 'checkbox';
+  borderSwitch.className = 'switch';
+  borderSwitch.checked = box.border;
+  borderSwitch.setAttribute('aria-label', 'Показывать рамку');
+  const hueSlider = document.createElement('input');
+  hueSlider.type = 'range';
+  hueSlider.className = 'qbox-range qbox-range-hue';
+  hueSlider.min = '0';
+  hueSlider.max = '360';
+  hueSlider.value = String(box.borderHue);
+  hueSlider.setAttribute('aria-label', 'Цвет рамки');
+  // Clicking the swatch brings back the original brown frame.
+  const swatch = document.createElement('button');
+  swatch.type = 'button';
+  swatch.className = 'qbox-swatch';
+  swatch.title = 'Вернуть исходный цвет';
+  swatch.setAttribute('aria-label', 'Вернуть исходный цвет рамки');
+  const borderToggle = document.createElement('span');
+  borderToggle.className = 'qbox-toggle';
+  borderToggle.appendChild(borderLabel);
+  borderToggle.appendChild(borderSwitch);
+  borderField.appendChild(borderToggle);
+  borderField.appendChild(hueSlider);
+  borderField.appendChild(swatch);
+  fields.appendChild(borderField);
+
+  const draft = () => ({
+    opacity: 100 - Number(slider.value),
+    border: borderSwitch.checked,
+    borderHue: Number(hueSlider.value),
+  });
+
+  const showPreview = () => {
+    const next = draft();
+    const alpha = next.opacity / 100;
+    sliderValue.textContent = slider.value + '%';
+    sample.style.background = 'rgba(0, 0, 0, ' + alpha + ')';
+    sample.style.border = '2px solid ' + (next.border ? questionBorderColor(next.borderHue, alpha) : 'transparent');
+    swatch.style.background = questionBorderColor(next.borderHue, 1);
+    hueSlider.disabled = !next.border;
+    swatch.disabled = !next.border;
+  };
+
+  const save = async () => {
+    const next = draft();
+    const previous = state.settings.questionBox;
+    if (JSON.stringify(next) === JSON.stringify(previous)) return;
+    state.settings.questionBox = next;
+    try {
+      await saveSettings();
+      setStatus('Фон под вопросом — сохранено', 'saved');
+    } catch (e) {
+      state.settings.questionBox = previous;
+      slider.value = String(100 - previous.opacity);
+      borderSwitch.checked = previous.border;
+      hueSlider.value = String(previous.borderHue);
+      showPreview();
+      setStatus('Не удалось сохранить фон под вопросом: ' + e.message, 'dirty');
+    }
+  };
+
+  // Dragging and picking only redraw the preview; the file is written once the choice is let go.
+  slider.addEventListener('input', showPreview);
+  slider.addEventListener('change', save);
+  hueSlider.addEventListener('input', showPreview);
+  hueSlider.addEventListener('change', save);
+  swatch.addEventListener('click', () => {
+    hueSlider.value = String(QUESTION_BOX_DEFAULT.borderHue);
+    showPreview();
+    save();
+  });
+  borderSwitch.addEventListener('change', () => {
+    showPreview();
+    save();
+  });
+  showPreview();
+  return row;
 }
 
 // ---------- Design: game font (one file the game's global styles load) ----------
@@ -1332,7 +1565,9 @@ function renderStageWordSlot() {
 }
 
 // ---------- Design: settings.json (read by the game at build time) ----------
-const DEFAULT_SETTINGS = { scorePoints: 100, fontName: '', stageWord: 'Этап', gameFlow: null, teamNames: null };
+const DEFAULT_SETTINGS = {
+  scorePoints: 100, fontName: '', stageWord: 'Этап', gameFlow: null, teamNames: null, questionBox: null,
+};
 
 async function loadSettings(handle) {
   let parsed = null;
@@ -1346,6 +1581,7 @@ async function loadSettings(handle) {
   if (typeof settings.stageWord !== 'string' || !settings.stageWord.trim()) settings.stageWord = DEFAULT_SETTINGS.stageWord;
   settings.gameFlow = normalizeGameFlow(settings.gameFlow);
   settings.teamNames = normalizeTeamNames(settings.teamNames);
+  settings.questionBox = normalizeQuestionBox(settings.questionBox);
   // A freshly created or broken file would stop the game from building, so it is rewritten right away.
   if (!parsed) await writeSettingsFile(handle, settings);
   return settings;
@@ -1554,7 +1790,11 @@ function renderTeamsModeToggle() {
     btn.className = option.value === state.settings.gameFlow.teamsMode ? 'active' : '';
     btn.onclick = async () => {
       if (option.value === state.settings.gameFlow.teamsMode) return;
+      // Switching the mode starts the names over; they are saved in the same write as the mode.
+      const previousNames = state.settings.teamNames;
+      state.settings.teamNames = normalizeTeamNames([]);
       await changeGameFlow((next) => { next.teamsMode = option.value; }, 'Названия команд: ' + option.label.toLowerCase());
+      if (state.settings.gameFlow.teamsMode !== option.value) state.settings.teamNames = previousNames;
       render();
     };
     options.appendChild(btn);
@@ -2874,8 +3114,7 @@ function renderImageEditor(q) {
 
 // Opens the OS's own "Open file" dialog (starting in questions-images/) so picking and
 // previewing images relies on Windows' own thumbnails instead of a custom in-page gallery.
-// The picked file is never copied — only its name is stored, so it must already live in
-// questions-images/ for the game to find it.
+// The game loads question pictures only from questions-images/, so a file from anywhere else is placed there.
 async function pickImageForQuestion(q) {
   if (!window.showOpenFilePicker) {
     setStatus('Этот браузер не поддерживает выбор файла таким способом.', 'dirty');
@@ -2896,19 +3135,87 @@ async function pickImageForQuestion(q) {
   } catch (e) {
     return; // user cancelled the dialog
   }
-  const picked = handles[0];
-  q.image = 'assets/questions-images/' + picked.name;
+  let placed;
+  try {
+    placed = await placeQuestionImage(handles[0]);
+  } catch (e) {
+    setStatus('Не удалось добавить картинку в questions-images: ' + e.message, 'dirty');
+    return;
+  }
+  q.image = QUESTION_IMAGES_PREFIX + placed;
   delete q.text;
   markDirty();
   render();
 }
 
-function loadImagePreview(relPath, imgEl) {
-  const name = relPath.split('/').pop();
-  state.imagesHandle.getFileHandle(name)
-    .then((fh) => fh.getFile())
-    .then((file) => { imgEl.src = URL.createObjectURL(file); })
-    .catch(() => {});
+const QUESTION_IMAGES_PREFIX = 'assets/questions-images/';
+
+// Returns the picture's path inside questions-images/. A file already in there (or a subfolder) is used where it
+// is; otherwise an identical picture already there is reused, and only a new one is copied in — under a free
+// name, so a different picture with the same name, used by other questions, is never overwritten.
+async function placeQuestionImage(fileHandle) {
+  const inside = await state.imagesHandle.resolve(fileHandle);
+  if (inside) return inside.join('/');
+  const file = await fileHandle.getFile();
+  const same = await findSameImage(state.imagesHandle, file, []);
+  if (same) return same;
+  const name = await freeImageName(safeImageName(file.name));
+  await writeDesignFile(state.imagesHandle, name, file);
+  return name;
+}
+
+async function findSameImage(dir, file, path) {
+  for await (const [name, handle] of dir.entries()) {
+    if (handle.kind === 'directory') {
+      const found = await findSameImage(handle, file, path.concat(name));
+      if (found) return found;
+    } else {
+      const candidate = await handle.getFile();
+      if (candidate.size === file.size && await sameBytes(candidate, file)) return path.concat(name).join('/');
+    }
+  }
+  return null;
+}
+
+async function sameBytes(a, b) {
+  const [x, y] = (await Promise.all([a.arrayBuffer(), b.arrayBuffer()])).map((buf) => new Uint8Array(buf));
+  return x.every((byte, i) => byte === y[i]);
+}
+
+// Characters that would break the picture's address in the game (or aren't allowed in file names).
+function safeImageName(name) {
+  return name.replace(/[#?%&\\/:*"<>|]/g, '_') || 'image.jpg';
+}
+
+// "кот.jpg" if it's free, otherwise "кот (2).jpg", "кот (3).jpg"…
+async function freeImageName(name) {
+  const dot = name.lastIndexOf('.');
+  const base = dot > 0 ? name.slice(0, dot) : name;
+  const ext = dot > 0 ? name.slice(dot) : '';
+  for (let n = 1; ; n++) {
+    const candidate = n === 1 ? name : base + ' (' + n + ')' + ext;
+    try {
+      await state.imagesHandle.getFileHandle(candidate);
+    } catch (e) {
+      if (e.name === 'NotFoundError') return candidate;
+      throw e;
+    }
+  }
+}
+
+// Paths may point into subfolders of questions-images/, so the preview walks down to the file.
+async function loadImagePreview(relPath, imgEl) {
+  const parts = relPath.startsWith(QUESTION_IMAGES_PREFIX)
+    ? relPath.slice(QUESTION_IMAGES_PREFIX.length).split('/')
+    : [relPath.split('/').pop()];
+  try {
+    let dir = state.imagesHandle;
+    for (const folder of parts.slice(0, -1)) dir = await dir.getDirectoryHandle(folder);
+    const file = await (await dir.getFileHandle(parts[parts.length - 1])).getFile();
+    imgEl.src = URL.createObjectURL(file);
+  } catch (e) {
+    // missing picture: the preview stays empty and the path below it shows what is expected
+  }
 }
 
 // ---------- Cube art: glass cube sprites shared by the hero and the tab backdrop ----------
@@ -3163,7 +3470,6 @@ const cubeArt = (function initCubeArt() {
 const heroBalloons = (function initHeroBalloons() {
   const canvas = document.getElementById('heroCanvas');
   const ctx = canvas.getContext('2d');
-  const headerEl = document.querySelector('header');
   const DPR = Math.min(window.devicePixelRatio || 1, 2);
   const { HUES, rgba, rand, roundPoly, makeSprite } = cubeArt;
   let W = 0;
@@ -3228,7 +3534,7 @@ const heroBalloons = (function initHeroBalloons() {
   }
 
   function sizeHero() {
-    heroBanner.style.minHeight = Math.max(300, window.innerHeight - headerEl.offsetHeight) + 'px';
+    heroBanner.style.minHeight = Math.max(300, window.innerHeight) + 'px';
   }
 
   function build() {
@@ -3431,7 +3737,6 @@ const heroBalloons = (function initHeroBalloons() {
   sizeHero();
   build();
   window.addEventListener('resize', sizeHero);
-  new ResizeObserver(sizeHero).observe(headerEl);
   let rebuildTimer = null;
   new ResizeObserver(() => {
     clearTimeout(rebuildTimer);
@@ -3465,12 +3770,13 @@ const heroBalloons = (function initHeroBalloons() {
       const gap = Math.min(Infinity, ...cubes.map((c) => Math.hypot((c.fx - p.fx) * 1.6, c.fy - p.fy)));
       if (!best || gap > best.gap) best = { ...p, gap };
     }
-    const r = rand(12, 26);
+    const r = rand(20, 44);
     const hue = HUES[Math.floor(Math.random() * HUES.length)];
     const yaw = (Math.random() < 0.5 ? -1 : 1) * rand(0.45, 0.95);
     cubes.push({
       fx: best.fx, fy: best.fy, r,
-      soft: makeSprite(r, hue, true, rand(5, 8), yaw, false),
+      // Blur grows with size so bigger cubes stay just as out of focus.
+      soft: makeSprite(r, hue, true, r * 0.28, yaw, false),
       sharp: makeSprite(r, hue, true, 0, yaw, false),
       rest: rand(0.45, 0.75),
       focus: 0,
@@ -3543,6 +3849,10 @@ const heroBalloons = (function initHeroBalloons() {
 })();
 
 // ---------- Wire up header buttons ----------
+const pageHeader = document.querySelector('header');
+const frostHeader = () => pageHeader.classList.toggle('scrolled', window.scrollY > 0);
+window.addEventListener('scroll', frostHeader, { passive: true });
+frostHeader();
 btnSave.onclick = saveRounds;
 initialHint.onclick = pickFolder;
 initialHint.addEventListener('pointerdown', (e) => e.stopPropagation());
