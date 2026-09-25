@@ -1,5 +1,6 @@
 import {Component, ChangeDetectionStrategy, Input} from '@angular/core';
 import {Round} from '../../../../interfaces/round.interface';
+import {questionBoxStyle} from '../../constants/question-box.const';
 
 @Component({
     selector: 'question-with-timer',
@@ -12,4 +13,6 @@ export class QuestionWithTimerComponent {
     @Input() questionNumber: number;
     @Input() isQuestionHide: boolean;
     @Input() timer: number;
+
+    readonly boxStyle = questionBoxStyle;
 }

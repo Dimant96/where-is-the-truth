@@ -1,4 +1,4 @@
-@content-padding: 35%;
+@content-padding: 15%;
 
 :host {
     display: flex;
@@ -12,8 +12,6 @@
     width: 1200px;
     padding: 20px 40px;
     overflow-y: auto;
-    background: rgba(0, 0, 0, .6);
-    border: 4px solid #8d5210;
     border-radius: 10px;
     font-size: 77px;
     color: #fff;
@@ -26,5 +24,20 @@
 
     &_hide {
         opacity: 0;
+    }
+
+    // The box hugs the picture; a picture larger than the room shrinks to fit it whole, a smaller one keeps its size.
+    // The room is the whole area between team names and scores (the box is centred in it); 88px and 48px are
+    // the box's padding plus its 4px frame on both sides.
+    &_img {
+        width: auto;
+        max-width: 1200px;
+        overflow: hidden;
+
+        img {
+            display: block;
+            max-width: ~"calc(min(1200px, 100cqw) - 88px)";
+            max-height: ~"calc(100cqh - 48px)";
+        }
     }
 }

@@ -5,9 +5,10 @@ import {CommonQuestionComponent} from './components/common-question/common-quest
 import {QuestionWithTimerComponent} from './components/question-with-timer/question-with-timer.component';
 import {TimerComponent} from './components/timer/timer.component';
 import {RoundComponent} from './round.component';
+import {FitTextDirective} from './directives/fit-text.directive';
 
 @NgModule({
-    declarations: [RoundComponent, CommonQuestionComponent, QuestionWithTimerComponent, TimerComponent],
+    declarations: [RoundComponent, CommonQuestionComponent, QuestionWithTimerComponent, TimerComponent, FitTextDirective],
     imports: [
         CommonModule,
         DualViewTimerModule

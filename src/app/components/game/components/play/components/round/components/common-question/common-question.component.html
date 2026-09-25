@@ -1,6 +1,9 @@
 <div
     *ngIf="round.questions[questionNumber] as question"
     [class.content_hide]="isQuestionHide"
+    [class.content_img]="question.image"
+    [appFitText]="question.text"
+    [ngStyle]="boxStyle"
     class="content"
 >
     <img

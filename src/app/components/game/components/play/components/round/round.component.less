@@ -41,11 +41,14 @@
     }
 }
 
+// Always exactly the room between the team names and the scores, whatever it holds: a large picture can't
+// stretch it. Inside it, cqw/cqh (1% of its width/height) let a question picture be limited to that room.
 .content-wrapper {
     height: 100%;
     display: flex;
     justify-content: center;
     position: relative;
+    container-type: size;
 }
 
 .blur {
