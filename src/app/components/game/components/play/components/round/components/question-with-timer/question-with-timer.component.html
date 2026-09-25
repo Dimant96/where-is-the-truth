@@ -1,5 +1,11 @@
 <ng-container>
-    <h2 class="timer">{{timer | dualViewTimer : round.timer}}</h2>
+    <h2 class="timer">
+        <span
+            *ngFor="let char of (timer | dualViewTimer : round.timer).split(''); trackBy: trackByIndex"
+            class="timer-char"
+            [class.timer-char_colon]="char === ':'"
+        >{{char}}</span>
+    </h2>
     <div
         *ngIf="round.questions[questionNumber] as question"
         [class.content_hide]="isQuestionHide"

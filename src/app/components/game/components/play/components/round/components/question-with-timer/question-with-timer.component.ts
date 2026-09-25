@@ -15,4 +15,7 @@ export class QuestionWithTimerComponent {
     @Input() timer: number;
 
     readonly boxStyle = questionBoxStyle;
+
+    // Keeps the same eight cells and only swaps their digits on every tick.
+    readonly trackByIndex = (index: number) => index;
 }

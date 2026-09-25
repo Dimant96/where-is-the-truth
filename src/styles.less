@@ -18,6 +18,18 @@ html, body {
     font-family: 'Game Font', cursive;
 }
 
+// The game font's digits have different widths, so a centred countdown would shake on every tick.
+// Each timer character gets a cell of its own fixed width instead.
+.timer-char {
+    display: inline-block;
+    width: .58em;
+    text-align: center;
+
+    &_colon {
+        width: .3em;
+    }
+}
+
 h1, h2, h3, h4, p {
     text-shadow: 10px 6px 10px rgba(0, 0, 0, .6);
     margin: 0;

@@ -10,4 +10,7 @@ import {Round} from '../../../../interfaces/round.interface';
 export class TimerComponent {
     @Input() round: Round;
     @Input() timer: number;
+
+    // Keeps the same eight cells and only swaps their digits on every tick.
+    readonly trackByIndex = (index: number) => index;
 }
