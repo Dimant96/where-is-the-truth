@@ -883,7 +883,18 @@ const RoundType = {
   Question: 'Question',
   QuestionWithTimer: 'Question with timer',
   Timer: 'Timer',
+  // Each team has its own list (round.teamQuestions = [first team's, second team's]); the game plays the lit team's.
+  TeamQuestion: 'Team questions',
+  TeamQuestionWithTimer: 'Team questions with timer',
 };
+
+function isTeamRoundType(type) {
+  return type === RoundType.TeamQuestion || type === RoundType.TeamQuestionWithTimer;
+}
+
+function hasRoundTimer(type) {
+  return type === RoundType.QuestionWithTimer || type === RoundType.TeamQuestionWithTimer || type === RoundType.Timer;
+}
 
 const state = {
   pendingHandle: null, // remembered folder handle awaiting a user gesture to re-request permission
@@ -2466,16 +2477,28 @@ function renderStageBufferRow(name) {
 function newRound() {
   return { type: RoundType.Question, name: W.pick('Новый', 'Новая', 'Новое') + ' ' + W.nom, questions: [{ text: '' }] };
 }
+// Switching between single-list and per-team types never drops questions: a single list becomes the first
+// team's, and the two team lists are joined back (first team's, then second team's).
 function applyTypeChange(round, type) {
   round.type = type;
   if (type === RoundType.Timer) {
     delete round.questions;
-    if (typeof round.timer !== 'number') round.timer = 30000;
-  } else if (type === RoundType.QuestionWithTimer) {
-    if (!round.questions) round.questions = [{ text: '' }];
+    delete round.teamQuestions;
+  } else if (isTeamRoundType(type)) {
+    if (!Array.isArray(round.teamQuestions)) {
+      round.teamQuestions = [round.questions && round.questions.length ? round.questions : [{ text: '' }], [{ text: '' }]];
+    }
+    delete round.questions;
+  } else {
+    if (!round.questions) {
+      const joined = (round.teamQuestions || []).flat();
+      round.questions = joined.length ? joined : [{ text: '' }];
+    }
+    delete round.teamQuestions;
+  }
+  if (hasRoundTimer(type)) {
     if (typeof round.timer !== 'number') round.timer = 30000;
   } else {
-    if (!round.questions) round.questions = [{ text: '' }];
     delete round.timer;
   }
 }
@@ -2916,6 +2939,8 @@ function typeLabel(type) {
   if (type === RoundType.Question) return 'Вопросы';
   if (type === RoundType.QuestionWithTimer) return 'Вопросы + таймер';
   if (type === RoundType.Timer) return 'Таймер';
+  if (type === RoundType.TeamQuestion) return 'Отдельные вопросы командам';
+  if (type === RoundType.TeamQuestionWithTimer) return 'Отдельные вопросы командам + таймер';
   return type;
 }
 
@@ -2943,7 +2968,10 @@ function renderRoundBody(round, index) {
   const typeLabelEl = document.createElement('label');
   typeLabelEl.textContent = 'Тип ' + W.gen;
   const typeSelect = document.createElement('select');
-  [RoundType.Question, RoundType.QuestionWithTimer, RoundType.Timer].forEach((t) => {
+  [
+    RoundType.Question, RoundType.QuestionWithTimer, RoundType.Timer,
+    RoundType.TeamQuestion, RoundType.TeamQuestionWithTimer,
+  ].forEach((t) => {
     const opt = document.createElement('option');
     opt.value = t;
     opt.textContent = typeLabel(t);
@@ -2959,7 +2987,7 @@ function renderRoundBody(round, index) {
   typeField.appendChild(typeSelect);
   row1.appendChild(typeField);
 
-  if (round.type !== RoundType.Question) {
+  if (hasRoundTimer(round.type)) {
     const timerField = document.createElement('div');
     const timerLabel = document.createElement('label');
     timerLabel.textContent = 'Время на ' + W.acc + ' (секунды)';
@@ -2979,31 +3007,44 @@ function renderRoundBody(round, index) {
 
   body.appendChild(row1);
 
-  // Questions
-  if (round.type !== RoundType.Timer) {
-    if (!round.questions) round.questions = [];
-    const qLabel = document.createElement('label');
-    qLabel.textContent = 'Вопросы';
-    body.appendChild(qLabel);
-
-    const list = document.createElement('div');
-    list.className = 'questions-list';
-    round.questions.forEach((q, qIndex) => {
-      list.appendChild(renderQuestionRow(round, qIndex));
+  // Questions: one list, or one per team in the team types
+  if (isTeamRoundType(round.type)) {
+    if (!Array.isArray(round.teamQuestions)) round.teamQuestions = [];
+    ['Задания команды 1 (левой)', 'Задания команды 2 (правой)'].forEach((title, team) => {
+      if (!Array.isArray(round.teamQuestions[team])) round.teamQuestions[team] = [];
+      renderQuestionList(body, round, index, round.teamQuestions[team], 'team' + team, title);
     });
-    body.appendChild(list);
-
-    const addQBtn = createIconBtn(ICON_PLUS, 'Добавить вопрос');
-    addQBtn.onclick = () => {
-      round.questions.push({ text: '' });
-      markDirty();
-      render();
-      state.expanded.add(index);
-    };
-    body.appendChild(addQBtn);
+  } else if (round.type !== RoundType.Timer) {
+    if (!round.questions) round.questions = [];
+    renderQuestionList(body, round, index, round.questions, 'main', 'Вопросы');
   }
 
   return body;
+}
+
+// A titled list of question rows with its own "+" button. listKey tells the lists of one card apart,
+// so dragging stays inside its list and the moved row can be found again after the redraw.
+function renderQuestionList(body, round, index, questions, listKey, title) {
+  const qLabel = document.createElement('label');
+  qLabel.textContent = title;
+  body.appendChild(qLabel);
+
+  const list = document.createElement('div');
+  list.className = 'questions-list';
+  list.dataset.list = listKey;
+  questions.forEach((q, qIndex) => {
+    list.appendChild(renderQuestionRow(round, questions, listKey, qIndex));
+  });
+  body.appendChild(list);
+
+  const addQBtn = createIconBtn(ICON_PLUS, 'Добавить вопрос');
+  addQBtn.onclick = () => {
+    questions.push({ text: '' });
+    markDirty();
+    render();
+    state.expanded.add(index);
+  };
+  body.appendChild(addQBtn);
 }
 
 function renderNameOnly(index, value) {
@@ -3013,8 +3054,8 @@ function renderNameOnly(index, value) {
   if (nameEl) nameEl.textContent = value || '(без названия)';
 }
 
-function renderQuestionRow(round, qIndex) {
-  const q = round.questions[qIndex];
+function renderQuestionRow(round, questions, listKey, qIndex) {
+  const q = questions[qIndex];
   const isImage = !!q.image;
 
   const row = document.createElement('div');
@@ -3025,12 +3066,12 @@ function renderQuestionRow(round, qIndex) {
   handle.textContent = '⠿';
   handle.title = 'Перетащи, чтобы изменить порядок';
   attachSortHandle(handle, row, (from, to) => {
-    const [moved] = round.questions.splice(from, 1);
-    round.questions.splice(to, 0, moved);
+    const [moved] = questions.splice(from, 1);
+    questions.splice(to, 0, moved);
     markDirty();
     render();
     const card = app.querySelector('.round-card[data-index="' + state.rounds.indexOf(round) + '"]');
-    return card && card.querySelectorAll('.question-row')[to];
+    return card && card.querySelectorAll('.questions-list[data-list="' + listKey + '"] > .question-row')[to];
   });
   row.appendChild(handle);
 
@@ -3074,7 +3115,7 @@ function renderQuestionRow(round, qIndex) {
   actions.className = 'row-actions';
   const removeBtn = createIconBtn(ICON_TRASH, 'Удалить вопрос', true);
   removeBtn.onclick = () => {
-    round.questions.splice(qIndex, 1);
+    questions.splice(qIndex, 1);
     markDirty();
     render();
   };
