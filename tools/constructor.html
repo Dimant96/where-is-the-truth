@@ -52,26 +52,26 @@
   }
   header h1 {
     /* Same size as the tabs and the Save button beside it; weight alone marks it as the title. */
-    font-size: 20px;
+    font-size: 17px;
     font-weight: 600;
-    line-height: 24px;
+    line-height: 22px;
     margin: 0 16px 0 0;
     white-space: nowrap;
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 8px;
     flex-shrink: 0;
   }
   header button {
     padding: 6px 14px;
-    font-size: 20px;
-    line-height: 24px;
+    font-size: 17px;
+    line-height: 22px;
     white-space: nowrap;
     flex-shrink: 0;
   }
   .cube-mark {
-    width: 19px;
-    height: 19px;
+    width: 16px;
+    height: 16px;
     flex-shrink: 0;
   }
   button {
@@ -696,6 +696,30 @@
     color: var(--text);
   }
   textarea { resize: vertical; min-height: 60px; }
+  /* Drop-down lists: no bright ring or system blue, just a soft yellow (the cubes' colour) under the mouse.
+     Chrome/Edge 135+ let the open list be styled (appearance: base-select); older ones keep their own list. */
+  select:focus, select:focus-visible { outline: none; }
+  @supports (appearance: base-select) {
+    select, ::picker(select) { appearance: base-select; }
+    select { cursor: pointer; }
+    ::picker(select) {
+      padding: 4px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card-bg);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    option {
+      padding: 7px 10px;
+      border-radius: 6px;
+      color: var(--text);
+      cursor: pointer;
+    }
+    /* Only the option under the mouse is highlighted; the chosen one looks like the rest. */
+    option::checkmark { display: none; }
+    option:focus, option:focus-visible, option:checked { background: transparent; outline: none; }
+    option:hover { background: rgba(255,200,90,0.2); }
+  }
   .field-row { display: flex; gap: 14px; flex-wrap: wrap; }
   .field-row > div { flex: 1; min-width: 160px; }
   .questions-list { display: flex; flex-direction: column; gap: 10px; }
