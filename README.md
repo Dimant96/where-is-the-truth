@@ -12,7 +12,7 @@
 ```bash
 git clone https://github.com/Dimant96/where-is-the-truth.git
 cd where-is-the-truth
-git checkout feature/rounds-editor
+git checkout feature/constructor
 npm ci
 ```
 
@@ -27,7 +27,7 @@ npm ci
 
 ## Конструктор
 
-Открой файл `tools/rounds-editor.html` в Chrome или Edge и нажми «Открой папку проекта». Выбери папку `where-is-the-truth`. Конструктор запомнит её и в следующий раз откроет сам.
+Открой файл `tools/constructor.html` в Chrome или Edge и нажми «Открой папку проекта». Выбери папку `where-is-the-truth`. Конструктор запомнит её и в следующий раз откроет сам.
 
 Где Конструктор хранит данные:
 

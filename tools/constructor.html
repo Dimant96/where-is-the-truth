@@ -1733,7 +1733,7 @@ async function deleteSoundFile(slot) {
 // ---------- IndexedDB (remembers the last picked folder so we don't ask every time) ----------
 function idbOpen() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open('rounds-editor', 1);
+    const req = indexedDB.open('constructor', 1);
     req.onupgradeneeded = () => req.result.createObjectStore('handles');
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
