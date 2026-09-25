@@ -133,7 +133,7 @@
     flex-direction: column;
     gap: 14px;
   }
-  .sidebar:has(#scenariosPanel:empty) { display: none; }
+  .sidebar:has(#storagePanel:empty) { display: none; }
   .scenario-toolbar {
     display: flex;
     align-items: center;
@@ -141,20 +141,12 @@
     min-height: 30px;
     margin-bottom: 14px;
   }
-  .storage-heading {
-    display: flex;
-    align-items: center;
-    min-height: 30px;
-    font-size: 13px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: var(--muted);
-    padding: 0 2px;
-  }
+  /* Level with the stages list: skip the toolbar row (30px + 14px gap) that sits above it. */
+  #tabPanelScenarios .sidebar { margin-top: 44px; }
   @media (max-width: 860px) {
     .layout { flex-direction: column; }
     .sidebar { width: 100%; position: static; }
+    #tabPanelScenarios .sidebar { margin-top: 0; }
   }
   main {
     flex: 1;
@@ -207,30 +199,58 @@
     margin: 0;
   }
   .scenarios-panel:empty { display: none; }
-  .scenarios-box {
+  .storage-box {
     background: var(--card-bg);
     border-radius: 12px;
     overflow: hidden;
   }
-  .storage-group {
-    border-radius: 12px;
-    overflow: hidden;
-  }
-  .storage-group .scenarios-box { border-radius: 0; }
-  .storage-group .scenarios-panel + .scenarios-panel .scenarios-box { border-top: 1px solid var(--border); }
-  .scenarios-header {
+  .storage-head {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 10px;
-    padding: 12px 14px;
-    border-bottom: 1px solid var(--border);
-    font-weight: 600;
-    cursor: pointer;
+    padding: 14px 14px 12px;
   }
-  .scenarios-box:not(.expanded) .scenarios-header { border-bottom: none; }
-  .scenarios-header .chevron { transition: transform .15s; }
-  .scenarios-box.expanded .scenarios-header .chevron { transform: rotate(90deg); }
+  .storage-head svg { width: 20px; height: 20px; flex-shrink: 0; color: #3fe0cc; }
+  .storage-title { font-weight: 600; }
+  .storage-sub { margin-top: 2px; font-size: 12px; color: var(--muted); }
+  .storage-tabs {
+    display: flex;
+    gap: 4px;
+    margin: 0 14px 10px;
+    padding: 3px;
+    border-radius: 10px;
+    background: var(--field-bg);
+  }
+  .storage-tabs button {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 8px;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 13px;
+  }
+  .storage-tabs button:hover { background: var(--surface-2); color: var(--text); }
+  .storage-tabs button.active { background: var(--surface-3); color: #fff; }
+  .storage-count {
+    min-width: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.08);
+    font-size: 11px;
+    line-height: 16px;
+  }
+  .storage-tabs button.active .storage-count { background: var(--accent); }
+  .storage-note { padding: 0 14px 12px; font-size: 12px; line-height: 1.4; color: var(--muted); }
+  .storage-box .scenarios-list {
+    max-height: calc(100vh - 290px);
+    overflow-y: auto;
+    border-top: 1px solid var(--border);
+  }
   .scenarios-list {
     display: flex;
     flex-direction: column;
@@ -363,6 +383,79 @@
   .field-error:empty { display: none; }
   .stage-word-field { display: flex; flex-direction: column; gap: 4px; width: 220px; }
   .field-hint { font-size: 12px; color: var(--muted); }
+  .switch {
+    appearance: none;
+    position: relative;
+    width: 36px;
+    height: 20px;
+    margin: 0;
+    flex-shrink: 0;
+    border-radius: 999px;
+    background: var(--surface-3);
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: transform .15s, background .15s;
+  }
+  .switch:checked { background: var(--accent); }
+  .switch:checked::after { transform: translateX(16px); background: #fff; }
+  .flow-row { background: var(--card-bg); }
+  .flow-row + .flow-row { border-top: 1px solid var(--border); }
+  .flow-row-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+  }
+  .flow-row-head .drag-handle { width: 26px; text-align: center; flex-shrink: 0; }
+  .flow-row-label { flex: 1; min-width: 0; font-size: 14px; font-weight: 500; }
+  .flow-row.off .flow-row-label { color: var(--muted); }
+  .flow-note { font-size: 12px; color: var(--muted); }
+  .flow-stage-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0 16px 14px 52px;
+    padding-left: 14px;
+    border-left: 2px solid var(--accent);
+  }
+  .flow-stage-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    min-height: 26px;
+    font-size: 13px;
+  }
+  .flow-stage-item-label { flex: 1; min-width: 140px; }
+  .flow-stage-item .kind-toggle { margin-bottom: 0; }
+  .team-names-fields { display: flex; gap: 14px; flex-wrap: wrap; padding: 14px 16px; }
+  .team-names-fields > div { flex: 1; min-width: 160px; }
+  .flow-chain {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 16px;
+  }
+  .flow-pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--surface-2);
+    font-size: 12px;
+    white-space: nowrap;
+  }
+  .flow-pill.stage { background: var(--accent); color: #fff; }
+  .flow-arrow { font-size: 12px; color: var(--muted); }
   .error {
     background: var(--danger-bg);
     border: 1px solid var(--danger-border);
@@ -664,10 +757,10 @@
     <polygon points="10,0 19,5 10,10 1,5" fill="#fff3d6"/>
     <polygon points="1,5 10,10 10,20 1,15" fill="#ffc85a"/>
     <polygon points="10,10 19,5 19,15 10,20" fill="#c77f10"/>
-  </svg>Конструктор <small style="font-size:11px;color:var(--muted);font-weight:400">build 10</small></h1>
+  </svg>Конструктор</h1>
   <nav id="tabs" class="tabs" style="display:none">
     <button class="tab-btn" data-tab="scenarios">Сценарии</button>
-    <button class="tab-btn" data-tab="design">Дизайн</button>
+    <button class="tab-btn" data-tab="design">Настройки</button>
   </nav>
   <span id="status"></span>
   <button id="btnSave" disabled style="display:none">Сохранить</button>
@@ -676,7 +769,7 @@
   <canvas id="heroCanvas" class="hero-canvas" role="img" aria-label="Конструктор"></canvas>
   <div class="hero-vignette"></div>
   <div id="heroError" class="error hero-error" style="display:none"></div>
-  <button id="initialHint" class="hero-cta" type="button">Откройте папку проекта</button>
+  <button id="initialHint" class="hero-cta" type="button">Открой папку проекта</button>
 </div>
 <canvas id="tabBackdrop" class="tab-backdrop" aria-hidden="true" style="display:none"></canvas>
 <div id="tabPanelDesign" class="layout" style="display:none">
@@ -687,11 +780,7 @@
 </div>
 <div id="tabPanelScenarios" class="layout" style="display:none">
   <aside class="sidebar">
-    <div class="storage-heading">Хранилище</div>
-    <div class="storage-group">
-      <div id="scenariosPanel" class="scenarios-panel"></div>
-      <div id="stageBufferPanel" class="scenarios-panel"></div>
-    </div>
+    <div id="storagePanel" class="scenarios-panel"></div>
   </aside>
   <main id="app"></main>
 </div>
@@ -714,10 +803,9 @@ const state = {
   dirty: false,
   scenariosHandle: null,
   scenarios: [], // ordered list of scenario names (without .json)
-  scenariosExpanded: false,
   stageBufferHandle: null,
   stageBuffer: [], // sorted list of saved single-round template names (without .json)
-  stageBufferExpanded: false,
+  storageTab: 'scenarios', // which list the storage shows: 'scenarios' or 'stages'
   audioHandle: null,
   backgroundHandle: null,
   fontsHandle: null,
@@ -726,8 +814,7 @@ const state = {
 };
 
 const app = document.getElementById('app');
-const scenariosPanel = document.getElementById('scenariosPanel');
-const stageBufferPanel = document.getElementById('stageBufferPanel');
+const storagePanel = document.getElementById('storagePanel');
 const statusEl = document.getElementById('status');
 const btnSave = document.getElementById('btnSave');
 const initialHint = document.getElementById('initialHint');
@@ -749,6 +836,9 @@ function setActiveTab(tab) {
   tabBackdrop.style.display = tab ? '' : 'none';
   if (tab === 'design' && !activeDesignSection) {
     setActiveDesignSection(DESIGN_SECTIONS[0].id);
+  } else if (tab === 'design' && activeDesignSection === 'flow') {
+    // The slide chain depends on how many stages the current game has, which the other tab may have changed.
+    refreshDesign();
   }
 }
 
@@ -758,7 +848,8 @@ tabButtons.forEach((btn) => {
 
 // ---------- Design tab: sections list ----------
 const DESIGN_SECTIONS = [
-  { id: 'general', label: 'Общие', render: renderGeneralSection },
+  { id: 'general', label: 'Дизайн', render: renderGeneralSection },
+  { id: 'flow', label: 'Конструктор игры', render: renderFlowSection },
 ];
 let activeDesignSection = null;
 let designObjectUrls = [];
@@ -795,7 +886,7 @@ function designObjectUrl(file) {
   return url;
 }
 
-// ---------- Design tab: "Общие" — one visually separate block per topic ----------
+// ---------- Settings tab: "Дизайн" — one visually separate block per topic ----------
 function renderGeneralSection(container) {
   container.appendChild(renderDesignBlock('Фоны', (block) => {
     BACKGROUND_SLOTS.forEach((slot) => block.appendChild(renderBackgroundSlot(slot)));
@@ -1022,7 +1113,7 @@ async function pickFontFile() {
     try {
       await new FontFace('DesignFontCheck', data).load();
     } catch (e) {
-      setStatus('Этот файл не похож на шрифт — выберите файл .ttf или .otf', 'dirty');
+      setStatus('Этот файл не похож на шрифт — выбери файл .ttf или .otf', 'dirty');
       return;
     }
     await writeDesignFile(state.fontsHandle, FONT_FILE, data);
@@ -1093,7 +1184,7 @@ function renderScoringSlot() {
   const applyScore = async () => {
     const value = Number(input.value);
     if (input.value.trim() === '' || !Number.isInteger(value) || value < 1) {
-      error.textContent = 'Введите целое число больше нуля';
+      error.textContent = 'Введи целое число больше нуля';
       return;
     }
     error.textContent = '';
@@ -1121,6 +1212,64 @@ function renderScoringSlot() {
   markActive();
   return row;
 }
+
+// ---------- The stage word in every case the Constructor's texts need ----------
+// Russian endings by rule, not a dictionary: common words (этап, раунд, тур, матч, игра, партия, задание, часть)
+// come out right; words with a dropping vowel (уровень → уровня) may not. Only the first word is declined,
+// so "Тур викторины" becomes "тура викторины".
+function declineStageWord(raw) {
+  const [head, ...rest] = String(raw || 'Этап').trim().split(/\s+/);
+  const tail = rest.length ? ' ' + rest.join(' ') : '';
+  const w = head.toLowerCase();
+  const stem = w.slice(0, -1);
+  const hushing = /[жшчщц]$/;
+  const velarOrHushing = /[кгхжшчщ]$/;
+  let f;
+  if (w.endsWith('ие')) {
+    f = { gender: 'n', gen: stem + 'я', acc: w, ins: stem + 'ем', pl: stem + 'я', genPl: stem + 'й' };
+  } else if (w.endsWith('о')) {
+    f = { gender: 'n', gen: stem + 'а', acc: w, ins: stem + 'ом', pl: stem + 'а', genPl: stem };
+  } else if (w.endsWith('е')) {
+    f = { gender: 'n', gen: stem + 'я', acc: w, ins: stem + 'ем', pl: stem + 'я', genPl: stem + 'ей' };
+  } else if (w.endsWith('ия')) {
+    f = { gender: 'f', gen: stem + 'и', acc: stem + 'ю', ins: stem + 'ей', pl: stem + 'и', genPl: stem + 'й' };
+  } else if (w.endsWith('я')) {
+    f = { gender: 'f', gen: stem + 'и', acc: stem + 'ю', ins: stem + 'ей', pl: stem + 'и', genPl: stem + 'ь' };
+  } else if (w.endsWith('а')) {
+    const soft = velarOrHushing.test(stem);
+    f = {
+      gender: 'f', gen: stem + (soft ? 'и' : 'ы'), acc: stem + 'у', ins: stem + (hushing.test(stem) ? 'ей' : 'ой'),
+      pl: stem + (soft ? 'и' : 'ы'), genPl: stem,
+    };
+  } else if (w.endsWith('й')) {
+    f = { gender: 'm', gen: stem + 'я', acc: w, ins: stem + 'ем', pl: stem + 'и', genPl: stem + 'ев' };
+  } else if (/(сть|[жшчщ]ь)$/.test(w)) {
+    f = { gender: 'f', gen: stem + 'и', acc: w, ins: w + 'ю', pl: stem + 'и', genPl: stem + 'ей' };
+  } else if (w.endsWith('ь')) {
+    f = { gender: 'm', gen: stem + 'я', acc: w, ins: stem + 'ем', pl: stem + 'и', genPl: stem + 'ей' };
+  } else {
+    f = {
+      gender: 'm', gen: w + 'а', acc: w, ins: w + (hushing.test(w) ? 'ем' : 'ом'),
+      pl: w + (velarOrHushing.test(w) ? 'и' : 'ы'), genPl: w + (/[жшчщ]$/.test(w) ? 'ей' : 'ов'),
+    };
+  }
+  const forms = { nom: w, ...f };
+  Object.keys(forms).forEach((key) => { if (key !== 'gender') forms[key] += tail; });
+  return forms;
+}
+
+// W.gen → "раунда", W.Gen → "Раунда"; W.pick('Новый', 'Новая', 'Новое') agrees a word with the stage word's gender.
+const W = {};
+function refreshStageWord() {
+  const forms = declineStageWord(state.settings && state.settings.stageWord);
+  Object.keys(forms).forEach((key) => {
+    W[key] = forms[key];
+    if (key !== 'gender') W[key[0].toUpperCase() + key.slice(1)] = forms[key][0].toUpperCase() + forms[key].slice(1);
+  });
+  W.pick = (m, f, n) => ({ m, f, n })[forms.gender];
+  document.title = 'Конструктор ' + W.genPl + ' — where-is-the-truth';
+}
+refreshStageWord();
 
 // ---------- Design: the word the game shows before each round number ----------
 function renderStageWordSlot() {
@@ -1150,7 +1299,7 @@ function renderStageWordSlot() {
   const applyWord = async () => {
     const word = input.value.trim();
     if (!word) {
-      error.textContent = 'Введите слово — например, «Этап» или «Раунд»';
+      error.textContent = 'Введи слово — например, «Этап» или «Раунд»';
       return;
     }
     error.textContent = '';
@@ -1161,6 +1310,10 @@ function renderStageWordSlot() {
     try {
       await saveSettings();
       setStatus('Имя соревнований «' + word + '» — сохранено', 'saved');
+      // Every text in the Constructor that names a stage follows the new word.
+      refreshStageWord();
+      render();
+      renderStorage();
     } catch (e) {
       state.settings.stageWord = previous;
       input.value = previous;
@@ -1179,7 +1332,7 @@ function renderStageWordSlot() {
 }
 
 // ---------- Design: settings.json (read by the game at build time) ----------
-const DEFAULT_SETTINGS = { scorePoints: 100, fontName: '', stageWord: 'Этап' };
+const DEFAULT_SETTINGS = { scorePoints: 100, fontName: '', stageWord: 'Этап', gameFlow: null, teamNames: null };
 
 async function loadSettings(handle) {
   let parsed = null;
@@ -1191,6 +1344,8 @@ async function loadSettings(handle) {
   }
   const settings = { ...DEFAULT_SETTINGS, ...(parsed && typeof parsed === 'object' ? parsed : {}) };
   if (typeof settings.stageWord !== 'string' || !settings.stageWord.trim()) settings.stageWord = DEFAULT_SETTINGS.stageWord;
+  settings.gameFlow = normalizeGameFlow(settings.gameFlow);
+  settings.teamNames = normalizeTeamNames(settings.teamNames);
   // A freshly created or broken file would stop the game from building, so it is rewritten right away.
   if (!parsed) await writeSettingsFile(handle, settings);
   return settings;
@@ -1202,6 +1357,298 @@ function writeSettingsFile(handle, settings) {
 
 function saveSettings() {
   return writeSettingsFile(state.settingsHandle, state.settings);
+}
+
+// ---------- Design tab: "Конструктор игры" — the order of slides the game walks through ----------
+// The game reads settings.gameFlow the same way (game-flow.service.ts): the stages loop can't be switched off
+// and anything missing falls back to the classic order.
+const FLOW_BLOCK_IDS = ['welcome', 'teams', 'stages', 'end'];
+const FLOW_BLOCK_LABELS = { welcome: 'Начало игры', teams: 'Названия команд', get stages() { return W.Pl + ' сценария'; }, end: 'Финал' };
+const AFTER_STAGE_OPTIONS = [
+  { value: 'winner', label: 'Победный балл' },
+  { value: 'total', label: 'Сумма баллов' },
+  { value: 'none', label: 'Ничего' },
+];
+
+function normalizeGameFlow(raw) {
+  const flow = raw && typeof raw === 'object' ? raw : {};
+  const rawBlocks = Array.isArray(flow.blocks) ? flow.blocks : [];
+  const blocks = [];
+  rawBlocks.forEach((block) => {
+    const id = block && block.id;
+    if (FLOW_BLOCK_IDS.includes(id) && !blocks.some((b) => b.id === id)) {
+      blocks.push({ id, enabled: id === 'stages' || block.enabled !== false });
+    }
+  });
+  FLOW_BLOCK_IDS.filter((id) => !blocks.some((b) => b.id === id)).forEach((id) => blocks.push({ id, enabled: true }));
+  return {
+    blocks,
+    stagePreview: flow.stagePreview !== false,
+    afterStage: AFTER_STAGE_OPTIONS.some((o) => o.value === flow.afterStage) ? flow.afterStage : 'winner',
+    teamsMode: flow.teamsMode === 'preset' ? 'preset' : 'live',
+  };
+}
+
+// The game has two teams (teams-counter.const.ts); their names for the "Заранее" mode.
+const TEAMS_COUNT = 2;
+
+function normalizeTeamNames(raw) {
+  const names = Array.isArray(raw) ? raw : [];
+  return Array.from({ length: TEAMS_COUNT }, (_, i) => (typeof names[i] === 'string' ? names[i].trim() : ''));
+}
+
+// Applies one change to the flow, saves it and redraws the section; a failed save puts everything back.
+async function changeGameFlow(change, doneText) {
+  const previous = state.settings.gameFlow;
+  const next = JSON.parse(JSON.stringify(previous));
+  change(next);
+  state.settings.gameFlow = next;
+  try {
+    await saveSettings();
+    setStatus(doneText + ' — сохранено', 'saved');
+  } catch (e) {
+    state.settings.gameFlow = previous;
+    setStatus('Не удалось сохранить порядок слайдов: ' + e.message, 'dirty');
+  }
+  refreshDesign();
+}
+
+function renderFlowSection(container) {
+  container.appendChild(renderDesignBlock('Порядок слайдов', (block) => {
+    const list = document.createElement('div');
+    state.settings.gameFlow.blocks.forEach((flowBlock) => list.appendChild(renderFlowRow(flowBlock)));
+    block.appendChild(list);
+  }));
+  container.appendChild(renderDesignBlock('Как пройдёт игра', (block) => block.appendChild(renderFlowChain())));
+}
+
+function renderFlowSwitch(flowBlock) {
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.className = 'switch';
+  input.checked = flowBlock.enabled;
+  input.setAttribute('aria-label', 'Показывать слайд «' + FLOW_BLOCK_LABELS[flowBlock.id] + '»');
+  input.onchange = () => changeGameFlow((flow) => {
+    flow.blocks.find((b) => b.id === flowBlock.id).enabled = input.checked;
+  }, 'Слайд «' + FLOW_BLOCK_LABELS[flowBlock.id] + '» ' + (input.checked ? 'включён' : 'выключен'));
+  return input;
+}
+
+function renderFlowHead(row, flowBlock) {
+  const head = document.createElement('div');
+  head.className = 'flow-row-head';
+  const label = document.createElement('span');
+  label.className = 'flow-row-label';
+  label.textContent = FLOW_BLOCK_LABELS[flowBlock.id];
+  head.appendChild(label);
+  row.appendChild(head);
+  return head;
+}
+
+function renderFlowRow(flowBlock) {
+  const row = document.createElement('div');
+  row.className = 'flow-row' + (flowBlock.enabled ? '' : ' off');
+  const head = renderFlowHead(row, flowBlock);
+
+  const handle = document.createElement('span');
+  handle.className = 'drag-handle';
+  handle.textContent = '⠿';
+  handle.title = 'Перетащи, чтобы изменить порядок';
+  attachSortHandle(handle, row, async (from, to) => {
+    await changeGameFlow((flow) => {
+      const [moved] = flow.blocks.splice(from, 1);
+      flow.blocks.splice(to, 0, moved);
+    }, 'Порядок слайдов');
+    return designSectionContent.querySelectorAll('.flow-row')[to];
+  });
+  head.insertBefore(handle, head.firstChild);
+
+  if (flowBlock.id !== 'stages') {
+    head.appendChild(renderFlowSwitch(flowBlock));
+    if (flowBlock.id === 'teams') row.appendChild(renderTeamsModeBody());
+    return row;
+  }
+
+  const note = document.createElement('span');
+  note.className = 'flow-note';
+  note.textContent = 'Повторяется для ' + W.pick('каждого', 'каждой', 'каждого') + ' ' + W.gen;
+  head.appendChild(note);
+
+  const body = document.createElement('div');
+  body.className = 'flow-stage-body';
+  const flow = state.settings.gameFlow;
+
+  const previewItem = renderFlowStageItem(body, 'Представление ' + W.gen);
+  const previewSwitch = document.createElement('input');
+  previewSwitch.type = 'checkbox';
+  previewSwitch.className = 'switch';
+  previewSwitch.checked = flow.stagePreview;
+  previewSwitch.setAttribute('aria-label', 'Показывать представление ' + W.gen);
+  previewSwitch.onchange = () => changeGameFlow((next) => {
+    next.stagePreview = previewSwitch.checked;
+  }, 'Представление ' + W.gen + ' ' + (previewSwitch.checked ? 'включено' : 'выключено'));
+  previewItem.appendChild(previewSwitch);
+
+  const stageItem = renderFlowStageItem(body, W.pick('Сам', 'Сама', 'Само') + ' ' + W.nom + ' — вопросы и задания');
+  const always = document.createElement('span');
+  always.className = 'flow-note';
+  always.textContent = 'всегда';
+  stageItem.appendChild(always);
+
+  const afterItem = renderFlowStageItem(body, 'После ' + W.gen);
+  const options = document.createElement('div');
+  options.className = 'kind-toggle';
+  AFTER_STAGE_OPTIONS.forEach((option) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = option.label;
+    btn.className = option.value === flow.afterStage ? 'active' : '';
+    btn.onclick = () => {
+      if (option.value === state.settings.gameFlow.afterStage) return;
+      changeGameFlow((next) => { next.afterStage = option.value; }, 'После ' + W.gen + ': ' + option.label);
+    };
+    options.appendChild(btn);
+  });
+  afterItem.appendChild(options);
+
+  row.appendChild(body);
+  return row;
+}
+
+const TEAMS_MODE_OPTIONS = [
+  {
+    value: 'live',
+    label: 'Ввести во время игры',
+    hint: 'В игре будут пустые поля — впиши названия в процессе игры.',
+  },
+  {
+    value: 'preset',
+    label: 'Ввести заранее',
+    get hint() {
+      return 'Названия задаются во вкладке «Сценарии» над ' + W.pick('первым', 'первой', 'первым') + ' ' + W.ins +
+        ', а на слайде просто показываются.';
+    },
+  },
+];
+
+function renderTeamsModeBody() {
+  const body = document.createElement('div');
+  body.className = 'flow-stage-body';
+  const item = renderFlowStageItem(body, 'Как вводить названия');
+  item.appendChild(renderTeamsModeToggle());
+  const hint = document.createElement('div');
+  hint.className = 'flow-note';
+  hint.textContent = TEAMS_MODE_OPTIONS.find((o) => o.value === state.settings.gameFlow.teamsMode).hint;
+  body.appendChild(hint);
+  return body;
+}
+
+// "Ввести заранее" adds a names block above the stages in the Scenarios tab, so that tab is redrawn too.
+function renderTeamsModeToggle() {
+  const options = document.createElement('div');
+  options.className = 'kind-toggle';
+  TEAMS_MODE_OPTIONS.forEach((option) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = option.label;
+    btn.className = option.value === state.settings.gameFlow.teamsMode ? 'active' : '';
+    btn.onclick = async () => {
+      if (option.value === state.settings.gameFlow.teamsMode) return;
+      await changeGameFlow((next) => { next.teamsMode = option.value; }, 'Названия команд: ' + option.label.toLowerCase());
+      render();
+    };
+    options.appendChild(btn);
+  });
+  return options;
+}
+
+// Scenarios tab, above the stages: the names a new game starts with. Saved to settings.json like the Design fields.
+function renderTeamNamesBlock() {
+  return renderDesignBlock('Названия команд', (block) => {
+    const fields = document.createElement('div');
+    fields.className = 'team-names-fields';
+    state.settings.teamNames.forEach((name, index) => {
+      const field = document.createElement('div');
+      const label = document.createElement('label');
+      label.textContent = 'Команда ' + (index + 1);
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.maxLength = 40;
+      input.value = name;
+      label.htmlFor = input.id = 'teamName' + index;
+      input.addEventListener('change', async () => {
+        const value = input.value.trim();
+        input.value = value;
+        const previous = state.settings.teamNames[index];
+        if (value === previous) return;
+        state.settings.teamNames[index] = value;
+        try {
+          await saveSettings();
+          setStatus('Название команды ' + (index + 1) + ' — сохранено', 'saved');
+        } catch (e) {
+          state.settings.teamNames[index] = previous;
+          input.value = previous;
+          setStatus('Не удалось сохранить название команды: ' + e.message, 'dirty');
+        }
+      });
+      field.appendChild(label);
+      field.appendChild(input);
+      fields.appendChild(field);
+    });
+    block.appendChild(fields);
+  });
+}
+
+function renderFlowStageItem(body, labelText) {
+  const item = document.createElement('div');
+  item.className = 'flow-stage-item';
+  const label = document.createElement('span');
+  label.className = 'flow-stage-item-label';
+  label.textContent = labelText;
+  item.appendChild(label);
+  body.appendChild(item);
+  return item;
+}
+
+function renderFlowChain() {
+  const flow = state.settings.gameFlow;
+  const word = state.settings.stageWord;
+  const chain = document.createElement('div');
+  chain.className = 'flow-chain';
+  const pills = [];
+  const addPill = (text, stage) => pills.push({ text, stage });
+
+  flow.blocks.filter((b) => b.enabled).forEach((b) => {
+    if (b.id !== 'stages') {
+      addPill(FLOW_BLOCK_LABELS[b.id], false);
+      return;
+    }
+    state.rounds.forEach((round, i) => {
+      if (flow.stagePreview) addPill('Представление: ' + word + ' ' + (i + 1), false);
+      addPill(word + ' ' + (i + 1), true);
+      if (flow.afterStage === 'winner') addPill('Победный балл', false);
+      if (flow.afterStage === 'total') addPill('Сумма баллов', false);
+    });
+  });
+
+  if (!pills.length) {
+    chain.textContent = 'Нет ни одного слайда: добавь ' + W.pl + ' во вкладке «Сценарии».';
+    chain.classList.add('flow-note');
+    return chain;
+  }
+  pills.forEach((pill, i) => {
+    if (i) {
+      const arrow = document.createElement('span');
+      arrow.className = 'flow-arrow';
+      arrow.textContent = '→';
+      chain.appendChild(arrow);
+    }
+    const el = document.createElement('span');
+    el.className = 'flow-pill' + (pill.stage ? ' stage' : '');
+    el.textContent = pill.text;
+    chain.appendChild(el);
+  });
+  return chain;
 }
 
 // ---------- Design tab: Sounds section ----------
@@ -1351,7 +1798,7 @@ async function pickFolder() {
     setStatus('Доступ не предоставлен', 'dirty');
   }
   if (!window.showDirectoryPicker) {
-    showError('Этот браузер не поддерживает прямой доступ к файлам.\nОткройте этот файл в Chrome или Edge.');
+    showError('Этот браузер не поддерживает прямой доступ к файлам.\nОткрой этот файл в Chrome или Edge.');
     return;
   }
   let handle;
@@ -1411,6 +1858,7 @@ async function loadFromRoot(rootHandle) {
     state.fontsHandle = fontsHandle;
     state.settingsHandle = settingsHandle;
     state.settings = await loadSettings(settingsHandle);
+    refreshStageWord();
     state.scenariosHandle = scenariosHandle;
     state.stageBufferHandle = stageBufferHandle;
     state.rounds = rounds;
@@ -1425,13 +1873,12 @@ async function loadFromRoot(rootHandle) {
     tabsBar.style.display = '';
     render();
     await loadScenarioList();
-    renderScenarios();
     await loadStageBufferList();
-    renderStageBufferPanel();
+    renderStorage();
   } catch (e) {
     showError(
       'В выбранной папке не найден src/assets/rounds.json.\n' +
-      'Убедитесь, что вы выбрали именно папку "where-is-the-truth" (а не вложенную/родительскую папку).\n\n' +
+      'Убедись, что выбрана именно папка "where-is-the-truth" (а не вложенная или родительская).\n\n' +
       'Техническая причина: ' + e.message
     );
   }
@@ -1505,7 +1952,7 @@ async function loadStageBufferList() {
 
 async function saveRoundToBuffer(round) {
   if (!state.stageBufferHandle) return;
-  const raw = prompt('Название этапа для хранилища:', round.name || '');
+  const raw = prompt('Название ' + W.gen + ' для хранилища:', round.name || '');
   if (raw === null) return;
   const name = sanitizeScenarioName(raw);
   if (!name) {
@@ -1513,7 +1960,7 @@ async function saveRoundToBuffer(round) {
     return;
   }
   const exists = state.stageBuffer.includes(name);
-  if (exists && !confirm('Этап «' + name + '» уже есть в хранилище. Перезаписать?')) {
+  if (exists && !confirm(W.Nom + ' «' + name + '» уже есть в хранилище. Перезаписать?')) {
     return;
   }
   try {
@@ -1525,10 +1972,11 @@ async function saveRoundToBuffer(round) {
       state.stageBuffer.push(name);
       state.stageBuffer.sort();
     }
-    setStatus('Этап «' + name + '» добавлен в хранилище', 'saved');
-    renderStageBufferPanel();
+    setStatus(W.Nom + ' «' + name + '» ' + W.pick('добавлен', 'добавлена', 'добавлено') + ' в хранилище', 'saved');
+    state.storageTab = 'stages';
+    renderStorage();
   } catch (e) {
-    setStatus('Не удалось добавить этап в хранилище: ' + e.message, 'dirty');
+    setStatus('Не удалось добавить ' + W.acc + ' в хранилище: ' + e.message, 'dirty');
   }
 }
 
@@ -1546,7 +1994,7 @@ async function addBufferRoundToCurrent(name) {
 }
 
 async function deleteRoundFromBuffer(name) {
-  if (!confirm('Удалить этап «' + name + '» из хранилища? Это нельзя отменить.')) return;
+  if (!confirm('Удалить ' + W.acc + ' «' + name + '» из хранилища? Это нельзя отменить.')) return;
   try {
     await state.stageBufferHandle.removeEntry(name + '.json');
   } catch (e) {
@@ -1554,7 +2002,7 @@ async function deleteRoundFromBuffer(name) {
   }
   state.stageBuffer = state.stageBuffer.filter((n) => n !== name);
   renderBufferDropdown();
-  renderStageBufferPanel();
+  renderStorage();
 }
 
 async function saveCurrentAsScenario() {
@@ -1567,7 +2015,7 @@ async function saveCurrentAsScenario() {
     return;
   }
   const exists = state.scenarios.includes(name);
-  if (exists && !confirm('Сценарий «' + name + '» уже существует. Перезаписать его текущим набором этапов?')) {
+  if (exists && !confirm('Сценарий «' + name + '» уже существует. Перезаписать его текущим набором ' + W.genPl + '?')) {
     return;
   }
   try {
@@ -1580,7 +2028,8 @@ async function saveCurrentAsScenario() {
       await saveScenarioOrder();
     }
     setStatus('Сценарий «' + name + '» сохранён', 'saved');
-    renderScenarios();
+    state.storageTab = 'scenarios';
+    renderStorage();
   } catch (e) {
     setStatus('Не удалось сохранить сценарий: ' + e.message, 'dirty');
   }
@@ -1609,63 +2058,99 @@ async function deleteScenario(name) {
   }
   state.scenarios = state.scenarios.filter((n) => n !== name);
   await saveScenarioOrder();
-  renderScenarios();
+  renderStorage();
 }
 
-function renderScenarios() {
-  renderStoragePanel({
-    panel: scenariosPanel,
-    handle: state.scenariosHandle,
-    expandedKey: 'scenariosExpanded',
-    title: 'Сценарии',
-    items: state.scenarios,
-    emptyText: 'Пока нет сохранённых сценариев.',
-    renderRow: renderScenarioRow,
-    rerender: renderScenarios,
-  });
+// ---------- Storage: one card for saved scenarios and saved single stages, switched by tabs ----------
+// A scenario is a whole game and replaces the current one when loaded; a single stage is added to the current game.
+function storageTabs() {
+  return [
+    {
+      id: 'scenarios',
+      label: 'Сценарии',
+      items: state.scenarios,
+      note: 'Сценарий — это вся игра целиком. Загрузи его, и он заменит текущий.',
+      emptyText: 'Пока нет сохранённых сценариев. Чтобы сохранить текущую игру, нажми «Добавить сценарий в хранилище» ' +
+        'справа над списком ' + W.genPl + '.',
+      renderRow: renderScenarioRow,
+    },
+    {
+      id: 'stages',
+      label: W.Pl,
+      items: state.stageBuffer,
+      note: 'Отдельные ' + W.pl + ' — добавляй любой в текущий сценарий кнопкой «+».',
+      emptyText: 'Пока нет сохранённых ' + W.genPl + '. Наведи на строку ' + W.gen + ' в текущей игре и нажми ' +
+        '«Добавить ' + W.acc + ' в хранилище».',
+      renderRow: renderStageBufferRow,
+    },
+  ];
 }
 
-// Collapsible storage box shared by the scenarios and saved-stages panels.
-function renderStoragePanel({ panel, handle, expandedKey, title, items, emptyText, renderRow, rerender }) {
-  panel.innerHTML = '';
-  if (!handle) return;
+function renderStorage() {
+  storagePanel.innerHTML = '';
+  if (!state.scenariosHandle || !state.stageBufferHandle) return;
+
+  const tabs = storageTabs();
+  const active = tabs.find((t) => t.id === state.storageTab) || tabs[0];
 
   const box = document.createElement('div');
-  box.className = 'scenarios-box' + (state[expandedKey] ? ' expanded' : '');
+  box.className = 'storage-box';
 
-  const header = document.createElement('div');
-  header.className = 'scenarios-header';
-  header.onclick = () => {
-    state[expandedKey] = !state[expandedKey];
-    rerender();
-  };
+  const head = document.createElement('div');
+  head.className = 'storage-head';
+  head.innerHTML = ICON_STACK;
+  const titles = document.createElement('div');
+  const title = document.createElement('div');
+  title.className = 'storage-title';
+  title.textContent = 'Хранилище';
+  const sub = document.createElement('div');
+  sub.className = 'storage-sub';
+  sub.textContent = 'Сохранённые сценарии и ' + W.pl;
+  titles.appendChild(title);
+  titles.appendChild(sub);
+  head.appendChild(titles);
+  box.appendChild(head);
 
-  const titleEl = document.createElement('span');
-  titleEl.textContent = title;
-  header.appendChild(titleEl);
+  const switcher = document.createElement('div');
+  switcher.className = 'storage-tabs';
+  switcher.setAttribute('role', 'tablist');
+  tabs.forEach((tab) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.setAttribute('role', 'tab');
+    btn.setAttribute('aria-selected', String(tab === active));
+    btn.className = tab === active ? 'active' : '';
+    btn.textContent = tab.label;
+    const count = document.createElement('span');
+    count.className = 'storage-count';
+    count.textContent = String(tab.items.length);
+    btn.appendChild(count);
+    btn.onclick = () => {
+      state.storageTab = tab.id;
+      renderStorage();
+    };
+    switcher.appendChild(btn);
+  });
+  box.appendChild(switcher);
 
-  const chevron = document.createElement('span');
-  chevron.className = 'chevron';
-  chevron.innerHTML = ICON_CHEVRON;
-  header.appendChild(chevron);
+  const note = document.createElement('div');
+  note.className = 'storage-note';
+  note.textContent = active.note;
+  box.appendChild(note);
 
-  box.appendChild(header);
-
-  if (state[expandedKey]) {
-    const list = document.createElement('div');
-    list.className = 'scenarios-list';
-    if (items.length === 0) {
-      const empty = document.createElement('div');
-      empty.className = 'scenarios-empty';
-      empty.textContent = emptyText;
-      list.appendChild(empty);
-    } else {
-      items.forEach((name) => list.appendChild(renderRow(name)));
-    }
-    box.appendChild(list);
+  const list = document.createElement('div');
+  list.className = 'scenarios-list';
+  if (active.items.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'scenarios-empty';
+    empty.textContent = active.emptyText;
+    list.appendChild(empty);
+  } else {
+    active.items.forEach((name) => list.appendChild(active.renderRow(name)));
   }
+  box.appendChild(list);
 
-  panel.appendChild(box);
+  storagePanel.appendChild(box);
 }
 
 function renderScenarioRow(name) {
@@ -1678,13 +2163,13 @@ function renderScenarioRow(name) {
   const handle = document.createElement('span');
   handle.className = 'drag-handle';
   handle.textContent = '⠿';
-  handle.title = 'Перетащите, чтобы изменить порядок';
+  handle.title = 'Перетащи, чтобы изменить порядок';
   attachSortHandle(handle, row, async (from, to) => {
     const [moved] = state.scenarios.splice(from, 1);
     state.scenarios.splice(to, 0, moved);
     await saveScenarioOrder();
-    renderScenarios();
-    return scenariosPanel.querySelectorAll('.scenario-row')[to];
+    renderStorage();
+    return storagePanel.querySelectorAll('.scenario-row')[to];
   });
   top.appendChild(handle);
 
@@ -1696,7 +2181,7 @@ function renderScenarioRow(name) {
   const actions = document.createElement('div');
   actions.className = 'scenario-row-actions';
 
-  const loadBtn = createIconBtn(ICON_LOAD, 'Загрузить');
+  const loadBtn = createIconBtn(ICON_LOAD, 'Загрузить сценарий');
   loadBtn.onclick = () => loadScenario(name);
   actions.appendChild(loadBtn);
 
@@ -1707,19 +2192,6 @@ function renderScenarioRow(name) {
   row.appendChild(top);
 
   return row;
-}
-
-function renderStageBufferPanel() {
-  renderStoragePanel({
-    panel: stageBufferPanel,
-    handle: state.stageBufferHandle,
-    expandedKey: 'stageBufferExpanded',
-    title: 'Этапы',
-    items: state.stageBuffer,
-    emptyText: 'Пока нет сохранённых этапов.',
-    renderRow: renderStageBufferRow,
-    rerender: renderStageBufferPanel,
-  });
 }
 
 function renderStageBufferRow(name) {
@@ -1737,7 +2209,7 @@ function renderStageBufferRow(name) {
   const actions = document.createElement('div');
   actions.className = 'scenario-row-actions';
 
-  const addBtn = createIconBtn(ICON_PLUS, 'Добавить');
+  const addBtn = createIconBtn(ICON_PLUS, 'Добавить в текущий сценарий');
   addBtn.onclick = () => addBufferRoundToCurrent(name);
   actions.appendChild(addBtn);
 
@@ -1752,7 +2224,7 @@ function renderStageBufferRow(name) {
 
 // ---------- Round / question data helpers ----------
 function newRound() {
-  return { type: RoundType.Question, name: 'Новый этап', questions: [{ text: '' }] };
+  return { type: RoundType.Question, name: W.pick('Новый', 'Новая', 'Новое') + ' ' + W.nom, questions: [{ text: '' }] };
 }
 function applyTypeChange(round, type) {
   round.type = type;
@@ -1781,10 +2253,12 @@ function render() {
   toolbar.appendChild(saveScenarioBtn);
   app.appendChild(toolbar);
 
+  if (state.settings.gameFlow.teamsMode === 'preset') app.appendChild(renderTeamNamesBlock());
+
   if (state.rounds.length === 0) {
     const empty = document.createElement('div');
     empty.className = 'empty-state';
-    empty.textContent = 'Этапов пока нет.';
+    empty.textContent = W.GenPl + ' пока нет.';
     app.appendChild(empty);
   }
 
@@ -1802,7 +2276,7 @@ function render() {
 
   const addBtn = document.createElement('button');
   addBtn.className = 'add-round-btn';
-  addBtn.textContent = '+ Добавить этап';
+  addBtn.textContent = '+ Добавить ' + W.acc;
   addBtn.onclick = () => {
     state.rounds.push(newRound());
     state.expanded.add(state.rounds.length - 1);
@@ -1901,7 +2375,8 @@ function svgIcon(body) {
 }
 const ICON_CUBE_PLUS = svgIcon('<path d="M20 12V7.5L12 3 4 7.5v9L12 21"/><path d="M4 7.5l8 4.5 8-4.5"/><path d="M12 12v9"/><path d="M16 18h6M19 15v6"/>');
 const ICON_TRASH = svgIcon('<path d="M4 7h16"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M10 11v6M14 11v6"/>');
-const ICON_STACK_PUSH = svgIcon('<path d="M12 3v8"/><path d="M8.5 7.5L12 11l3.5-3.5"/><path d="M4 13l8 4 8-4"/><path d="M4 17l8 4 8-4"/>');
+const ICON_STACK = svgIcon('<path d="M12 3l8 4-8 4-8-4z"/><path d="M4 12l8 4 8-4"/><path d="M4 16.5l8 4 8-4"/>');
+const ICON_STACK_PUSH =svgIcon('<path d="M12 3v8"/><path d="M8.5 7.5L12 11l3.5-3.5"/><path d="M4 13l8 4 8-4"/><path d="M4 17l8 4 8-4"/>');
 const ICON_LOAD = svgIcon('<g transform="rotate(-90 12 12)"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M12 4v12"/><path d="M7 11l5 5 5-5"/></g>');
 const ICON_PLUS = svgIcon('<path d="M12 5v14M5 12h14"/>');
 const ICON_CHEVRON = svgIcon('<path d="M9 5l7 7-7 7"/>');
@@ -2125,7 +2600,7 @@ function renderRoundCard(round, index) {
   const handle = document.createElement('span');
   handle.className = 'drag-handle';
   handle.textContent = '⠿';
-  handle.title = 'Перетащите, чтобы изменить порядок';
+  handle.title = 'Перетащи, чтобы изменить порядок';
   // An expanded card is carried as just its header, then reopens wherever it lands.
   const setBodyShown = (shown) => {
     const body = card.querySelector('.round-body');
@@ -2158,17 +2633,17 @@ function renderRoundCard(round, index) {
   const actions = document.createElement('div');
   actions.className = 'round-actions';
 
-  const saveToBufferBtn = createIconBtn(ICON_CUBE_PLUS, 'Добавить в хранилище');
+  const saveToBufferBtn = createIconBtn(ICON_CUBE_PLUS, 'Добавить ' + W.acc + ' в хранилище');
   saveToBufferBtn.onclick = (e) => {
     e.stopPropagation();
     saveRoundToBuffer(round);
   };
   actions.appendChild(saveToBufferBtn);
 
-  const deleteBtn = createIconBtn(ICON_TRASH, 'Удалить этап', true);
+  const deleteBtn = createIconBtn(ICON_TRASH, 'Удалить ' + W.acc, true);
   deleteBtn.onclick = (e) => {
     e.stopPropagation();
-    if (!confirm('Удалить этап "' + (round.name || '') + '"?')) return;
+    if (!confirm('Удалить ' + W.acc + ' "' + (round.name || '') + '"?')) return;
     state.rounds.splice(index, 1);
     state.expanded.delete(index);
     markDirty();
@@ -2215,7 +2690,7 @@ function renderRoundBody(round, index) {
 
   const nameField = document.createElement('div');
   const nameLabel = document.createElement('label');
-  nameLabel.textContent = 'Название этапа';
+  nameLabel.textContent = 'Название ' + W.gen;
   const nameInput = document.createElement('input');
   nameInput.type = 'text';
   nameInput.value = round.name || '';
@@ -2226,7 +2701,7 @@ function renderRoundBody(round, index) {
 
   const typeField = document.createElement('div');
   const typeLabelEl = document.createElement('label');
-  typeLabelEl.textContent = 'Тип этапа';
+  typeLabelEl.textContent = 'Тип ' + W.gen;
   const typeSelect = document.createElement('select');
   [RoundType.Question, RoundType.QuestionWithTimer, RoundType.Timer].forEach((t) => {
     const opt = document.createElement('option');
@@ -2247,7 +2722,7 @@ function renderRoundBody(round, index) {
   if (round.type !== RoundType.Question) {
     const timerField = document.createElement('div');
     const timerLabel = document.createElement('label');
-    timerLabel.textContent = 'Время на этап (секунды)';
+    timerLabel.textContent = 'Время на ' + W.acc + ' (секунды)';
     const timerInput = document.createElement('input');
     timerInput.type = 'number';
     timerInput.min = '0';
@@ -2308,7 +2783,7 @@ function renderQuestionRow(round, qIndex) {
   const handle = document.createElement('span');
   handle.className = 'drag-handle';
   handle.textContent = '⠿';
-  handle.title = 'Перетащите, чтобы изменить порядок';
+  handle.title = 'Перетащи, чтобы изменить порядок';
   attachSortHandle(handle, row, (from, to) => {
     const [moved] = round.questions.splice(from, 1);
     round.questions.splice(to, 0, moved);
@@ -2391,7 +2866,7 @@ function renderImageEditor(q) {
 
   const drop = document.createElement('div');
   drop.className = 'image-drop';
-  drop.textContent = 'Нажмите, чтобы выбрать картинку (откроется папка questions-images)';
+  drop.textContent = 'Нажми, чтобы выбрать картинку (откроется папка questions-images)';
   drop.onclick = () => pickImageForQuestion(q);
   wrap.appendChild(drop);
   return wrap;
