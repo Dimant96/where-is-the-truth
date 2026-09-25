@@ -5,5 +5,7 @@ export interface Round {
     type: RoundType;
     name: string;
     timer: number;
-    questions: Question[];
+    questions?: Question[];
+    // Team rounds only: [first team's questions, second team's questions].
+    teamQuestions?: Question[][];
 }

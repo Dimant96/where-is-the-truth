@@ -25,6 +25,17 @@
                 [questionNumber]="isWaitingResponse ? (questionNumber$ | async) : -1"
                 [timer]="timer$ | async"
             ></question-with-timer>
+            <common-question
+                *ngSwitchCase="teamQuestionRound"
+                [round]="teamRound(round)"
+                [questionNumber]="isWaitingResponse ? question : -1"
+            ></common-question>
+            <question-with-timer
+                *ngSwitchCase="teamQuestionWithTimerRound"
+                [round]="teamRound(round)"
+                [questionNumber]="isWaitingResponse ? question : -1"
+                [timer]="timer$ | async"
+            ></question-with-timer>
             <timer
                 *ngSwitchCase="timerRound"
                 [round]="round"

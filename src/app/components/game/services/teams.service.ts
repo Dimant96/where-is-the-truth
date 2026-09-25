@@ -29,6 +29,11 @@ export class TeamsService {
         return this.respondingTeamNumberStore$.value !== null;
     }
 
+    // The team that is lit while the other is dimmed; null while both are lit.
+    get respondingTeam(): number | null {
+        return this.respondingTeamNumberStore$.value;
+    }
+
     init() {
         const storageTeamsString = localStorage.getItem(teamsStorageKey);
         const storageTeams: Team[] = storageTeamsString ? JSON.parse(storageTeamsString) : defaultTeams;

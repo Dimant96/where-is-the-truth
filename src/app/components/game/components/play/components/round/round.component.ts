@@ -6,6 +6,7 @@ import {GameNavigationService} from '../../../../services/game-navigation.servic
 import {GameFlowService} from '../../../../services/game-flow.service';
 import {GameStep} from '../../../../interfaces/game-step.interface';
 import {RoundType} from '../../enums/round-type.enum';
+import {Round} from '../../interfaces/round.interface';
 import {distinctUntilChanged, map, tap} from 'rxjs/operators';
 import {TimerService} from '../../services/timer.service';
 import {Observable, Subscription} from 'rxjs';
@@ -23,6 +24,8 @@ export class RoundComponent implements OnInit, OnDestroy {
     readonly questionRound = RoundType.Question;
     readonly questionWithTimerRound = RoundType.QuestionWithTimer;
     readonly timerRound = RoundType.Timer;
+    readonly teamQuestionRound = RoundType.TeamQuestion;
+    readonly teamQuestionWithTimerRound = RoundType.TeamQuestionWithTimer;
 
     readonly teams$ = this.teamsService.teams$;
     readonly timer$ = this.timerService.timer$.pipe(
@@ -45,6 +48,12 @@ export class RoundComponent implements OnInit, OnDestroy {
 
     isWaitingResponse = false;
     isRoundStart = false;
+
+    // Team rounds: each team walks its own list. Whether Space has shown the team's first question yet,
+    // and which of its questions is the current one, so switching teams back and forth resumes each list.
+    private teamStarted = [false, false];
+    private teamPositions = [0, 0];
+    private teamView: {source: Round, team: number | null, view: Round} | null = null;
 
     private roundSubscription: Subscription;
 
@@ -79,6 +88,7 @@ export class RoundComponent implements OnInit, OnDestroy {
     @HostListener('document:keydown.п')
     keyDownG() {
         this.teamsService.toggleRespondingTeamMode();
+        this.hideOnTeamSwitch();
     }
 
     @HostListener('document:keydown.t')
@@ -86,6 +96,7 @@ export class RoundComponent implements OnInit, OnDestroy {
     keyDownT() {
         if (this.teamsService.isTakeTurnsGame) {
             this.teamsService.toggleRespondingTeam();
+            this.hideOnTeamSwitch();
         }
     }
 
@@ -97,6 +108,13 @@ export class RoundComponent implements OnInit, OnDestroy {
 
     @HostListener('document:keydown.space')
     keyDownSpace() {
+        const team = this.teamsService.respondingTeam;
+
+        // In a team round nothing is shown until one team is lit: there is no list to take a question from.
+        if (this.isTeamRound && team === null) {
+            return;
+        }
+
         if (!this.timerService.isTimerWorked) {
             this.timerService.start();
         }
@@ -106,6 +124,19 @@ export class RoundComponent implements OnInit, OnDestroy {
         }
 
         this.isWaitingResponse = true;
+
+        if (this.isTeamRound) {
+            if (!this.teamStarted[team]) {
+                this.teamStarted[team] = true;
+                return;
+            }
+
+            if (!this.roundService.isAllQuestionsResolve(this.round, this.teamPositions[team], team)) {
+                this.teamPositions[team]++;
+            }
+
+            return;
+        }
 
         if (!this.isRoundStart) {
             this.isRoundStart = true;
@@ -121,14 +152,8 @@ export class RoundComponent implements OnInit, OnDestroy {
 
     @HostListener('document:keydown.1')
     keyDown1() {
-        const isRoundWithQuestion = this.roundService.isRoundHasQuestion(this.round);
-
-        if (isRoundWithQuestion) {
-            if (this.roundService.isAllQuestionsResolve(this.round, this.question)) {
-                return;
-            }
-
-            this.isWaitingResponse = false;
+        if (!this.hideQuestion()) {
+            return;
         }
 
         playAudio(AudioPath.WinQuestion);
@@ -143,14 +168,8 @@ export class RoundComponent implements OnInit, OnDestroy {
 
     @HostListener('document:keydown.2')
     keyDown2() {
-        const isRoundWithQuestion = this.roundService.isRoundHasQuestion(this.round);
-
-        if (isRoundWithQuestion) {
-            if (this.roundService.isAllQuestionsResolve(this.round, this.question)) {
-                return;
-            }
-
-            this.isWaitingResponse = false;
+        if (!this.hideQuestion()) {
+            return;
         }
 
         if (this.teamsService.isTakeTurnsGame) {
@@ -162,13 +181,16 @@ export class RoundComponent implements OnInit, OnDestroy {
         this.teamsService.bumpScore(1);
     }
 
-    ngOnInit() {
-        if (this.teamsService.isTakeTurnsGame) {
-            this.teamsService.toggleRespondingTeamMode();
-        }
+    // Takes the question off the screen without points or sound — e.g. when nobody answered.
+    @HostListener('document:keydown.z')
+    @HostListener('document:keydown.я')
+    keyDownZ() {
+        this.hideQuestion();
+    }
 
+    ngOnInit() {
         // Without a preview or a slide after it, one stage follows another on the same component,
-        // so every new stage starts over here rather than in the constructor.
+        // so every new stage starts over here rather than in the constructor: both teams lit, lists from the top.
         this.roundSubscription = this.activatedRoute
             .parent
             .params
@@ -177,11 +199,17 @@ export class RoundComponent implements OnInit, OnDestroy {
                 distinctUntilChanged(),
             )
             .subscribe(round => {
+                if (this.teamsService.isTakeTurnsGame) {
+                    this.teamsService.toggleRespondingTeamMode();
+                }
+
                 this.gameFlowService.enter(this.step);
                 this.teamsService.startRoundScore(round);
                 this.timerService.stop();
                 this.isWaitingResponse = false;
                 this.isRoundStart = false;
+                this.teamStarted = [false, false];
+                this.teamPositions = [0, 0];
             });
     }
 
@@ -197,11 +225,61 @@ export class RoundComponent implements OnInit, OnDestroy {
         return +this.activatedRoute.parent.snapshot.params.round;
     }
 
+    // The current question: in a team round the lit team's own place in its list, otherwise the one in the URL.
     get question(): number {
+        if (this.isTeamRound) {
+            const team = this.teamsService.respondingTeam;
+
+            return team === null ? 0 : this.teamPositions[team];
+        }
+
         return +this.activatedRoute.snapshot.params.question;
+    }
+
+    get isTeamRound(): boolean {
+        return this.roundService.isTeamRound(this.round);
+    }
+
+    // What a team round's question box shows: the round with the lit team's list as its questions.
+    // Cached, so the box gets a new object only when the round or the lit team changes.
+    teamRound(round: Round): Round {
+        const team = this.teamsService.respondingTeam;
+
+        if (!this.teamView || this.teamView.source !== round || this.teamView.team !== team) {
+            const questions = team === null ? [] : (round.teamQuestions || [])[team] || [];
+
+            this.teamView = {source: round, team, view: {...round, questions}};
+        }
+
+        return this.teamView.view;
     }
 
     isTeamBlur(teamNumber: number): boolean {
         return this.teamsService.isTakeTurnsGame ? this.teamsService.isRespondingTeam(teamNumber) : false;
+    }
+
+    // Hides the question on screen; false once the questions in play have all been shown, when there is
+    // nothing left to hide or to score. A round without questions (a plain timer) has nothing to hide.
+    private hideQuestion(): boolean {
+        const team = this.teamsService.respondingTeam;
+
+        if (!this.roundService.isRoundHasQuestion(this.round, team)) {
+            return true;
+        }
+
+        if (this.roundService.isAllQuestionsResolve(this.round, this.question, team)) {
+            return false;
+        }
+
+        this.isWaitingResponse = false;
+
+        return true;
+    }
+
+    // A team round never keeps a question on screen once another team (or both) is lit: it belongs to the old one.
+    private hideOnTeamSwitch() {
+        if (this.isTeamRound) {
+            this.isWaitingResponse = false;
+        }
     }
 }
