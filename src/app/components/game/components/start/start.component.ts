@@ -6,6 +6,7 @@ import {TeamsOrder} from '../../enums/teams-order.enum';
 import {GameFlowService} from '../../services/game-flow.service';
 import {GameStep} from '../../interfaces/game-step.interface';
 import {gameFlow} from '../../services/constants/game-flow.const';
+import {isHotkey} from '../../services/constants/hotkeys.const';
 
 const step: GameStep = {kind: 'teams'};
 
@@ -23,14 +24,13 @@ export class StartComponent implements OnInit {
 
     teamsNamesForm: FormArray;
 
-    @HostListener('document:keydown.ArrowRight')
-    keydownArrowRight() {
-        this.gameFlowService.next(step);
-    }
-
-    @HostListener('document:keydown.ArrowLeft')
-    keydownArrowLeft() {
-        this.gameFlowService.prev(step);
+    @HostListener('document:keydown', ['$event'])
+    keydown(event: KeyboardEvent) {
+        if (isHotkey(event, 'next')) {
+            this.gameFlowService.next(step);
+        } else if (isHotkey(event, 'prev')) {
+            this.gameFlowService.prev(step);
+        }
     }
 
     constructor(

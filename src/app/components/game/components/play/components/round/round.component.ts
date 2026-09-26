@@ -12,6 +12,7 @@ import {TimerService} from '../../services/timer.service';
 import {Observable, Subscription} from 'rxjs';
 import {playAudio} from '../../../../utils/play-audio';
 import {AudioPath} from '../../../../enums/audio.enum';
+import {isHotkey} from '../../../../services/constants/hotkeys.const';
 
 @Component({
     selector: 'app-round',
@@ -72,27 +73,45 @@ export class RoundComponent implements OnInit, OnDestroy {
             .pipe(map(({question}) => question));
     }
 
-    @HostListener('document:keydown.ArrowRight')
+    // The keys are the Constructor's "Управление" (hotkeys.const.ts).
+    @HostListener('document:keydown', ['$event'])
+    keydown(event: KeyboardEvent) {
+        if (isHotkey(event, 'next')) {
+            this.keydownArrowRight();
+        } else if (isHotkey(event, 'prev')) {
+            this.keydownArrowLeft();
+        } else if (isHotkey(event, 'turnsMode')) {
+            this.keyDownG();
+        } else if (isHotkey(event, 'switchTeam')) {
+            this.keyDownT();
+        } else if (isHotkey(event, 'stopTimer')) {
+            this.keyDownR();
+        } else if (isHotkey(event, 'show')) {
+            this.keyDownSpace();
+        } else if (isHotkey(event, 'team1')) {
+            this.keyDown1();
+        } else if (isHotkey(event, 'team2')) {
+            this.keyDown2();
+        } else if (isHotkey(event, 'hide')) {
+            this.keyDownZ();
+        }
+    }
+
     keydownArrowRight() {
         this.teamsService.commitRoundScore(this.round);
         this.gameFlowService.next(this.step);
     }
 
-    @HostListener('document:keydown.ArrowLeft')
     keydownArrowLeft() {
         this.teamsService.commitRoundScore(this.round);
         this.gameFlowService.prev(this.step);
     }
 
-    @HostListener('document:keydown.g')
-    @HostListener('document:keydown.п')
     keyDownG() {
         this.teamsService.toggleRespondingTeamMode();
         this.hideOnTeamSwitch();
     }
 
-    @HostListener('document:keydown.t')
-    @HostListener('document:keydown.е')
     keyDownT() {
         if (this.teamsService.isTakeTurnsGame) {
             this.teamsService.toggleRespondingTeam();
@@ -100,13 +119,10 @@ export class RoundComponent implements OnInit, OnDestroy {
         }
     }
 
-    @HostListener('document:keydown.r')
-    @HostListener('document:keydown.к')
     keyDownR() {
         this.timerService.stop();
     }
 
-    @HostListener('document:keydown.space')
     keyDownSpace() {
         const team = this.teamsService.respondingTeam;
 
@@ -150,7 +166,6 @@ export class RoundComponent implements OnInit, OnDestroy {
         this.gameNavigationService.goToQuestion(this.round, this.question + 1);
     }
 
-    @HostListener('document:keydown.1')
     keyDown1() {
         if (!this.hideQuestion()) {
             return;
@@ -166,7 +181,6 @@ export class RoundComponent implements OnInit, OnDestroy {
         this.teamsService.bumpScore(0);
     }
 
-    @HostListener('document:keydown.2')
     keyDown2() {
         if (!this.hideQuestion()) {
             return;
@@ -182,8 +196,6 @@ export class RoundComponent implements OnInit, OnDestroy {
     }
 
     // Takes the question off the screen without points or sound — e.g. when nobody answered.
-    @HostListener('document:keydown.z')
-    @HostListener('document:keydown.я')
     keyDownZ() {
         this.hideQuestion();
     }

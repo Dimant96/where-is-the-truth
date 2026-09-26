@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Конструктор этапов — where-is-the-truth</title>
+<!-- The game's cube (src/favicon.svg), inlined so the tab icon works however the Constructor is opened. -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpolygon points='10,0 19,5 10,10 1,5' fill='%23fff3d6'/%3E%3Cpolygon points='1,5 10,10 10,20 1,15' fill='%23ffc85a'/%3E%3Cpolygon points='10,10 19,5 19,15 10,20' fill='%23c77f10'/%3E%3C/svg%3E">
 <style>
   :root {
     --bg: #1c1d21;
@@ -474,6 +476,24 @@
   .field-error:empty { display: none; }
   .stage-word-field { display: flex; flex-direction: column; gap: 4px; width: 220px; }
   .field-hint { font-size: 12px; color: var(--muted); }
+  /* "Управление": the key an action is on, drawn like a keyboard key; lit in the cubes' yellow while it waits. */
+  .hotkey-hint { display: block; margin-top: 2px; font-weight: 400; }
+  .hotkey-btn {
+    min-width: 96px;
+    padding: 7px 14px;
+    font-weight: 600;
+    border: 1px solid var(--border);
+    border-bottom-width: 3px;
+    text-align: center;
+  }
+  .hotkey-btn.capturing {
+    background: rgba(255,200,90,0.2);
+    border-color: rgba(255,200,90,0.6);
+    font-weight: 500;
+  }
+  .hotkey-alt { color: var(--muted); font-weight: 500; opacity: 0.7; }
+  .hotkey-error { flex-basis: 100%; text-align: right; }
+  .hotkeys-reset-all { margin-top: 4px; }
   .switch {
     appearance: none;
     position: relative;
@@ -695,7 +715,37 @@
     background: var(--field-bg);
     color: var(--text);
   }
-  textarea { resize: vertical; min-height: 60px; }
+  /* Question text: fixed height (no resize grip), long text scrolls up/down only. The scrollbar is drawn
+     like our buttons — dark rounded arrows and thumb instead of the white system one. */
+  textarea { resize: none; min-height: 60px; overflow-x: hidden; overflow-y: auto; }
+  textarea::-webkit-scrollbar { width: 16px; background: transparent; }
+  textarea::-webkit-scrollbar-track { background: transparent; }
+  textarea::-webkit-scrollbar-corner { background: transparent; }
+  textarea::-webkit-scrollbar-thumb {
+    background: var(--surface-2);
+    border: 4px solid var(--field-bg);
+    border-radius: 8px;
+  }
+  textarea::-webkit-scrollbar-thumb:hover { background: var(--surface-3); }
+  textarea::-webkit-scrollbar-button:single-button:vertical {
+    display: block;
+    height: 16px;
+    background-color: var(--surface-2);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 10px;
+    border: 2px solid var(--field-bg);
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  textarea::-webkit-scrollbar-button:single-button:vertical:hover { background-color: var(--surface-3); }
+  textarea::-webkit-scrollbar-button:single-button:vertical:decrement {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 6.5 5 3.5 8 6.5' fill='none' stroke='%23e8e9ec' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  textarea::-webkit-scrollbar-button:single-button:vertical:increment {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M2 3.5 5 6.5 8 3.5' fill='none' stroke='%23e8e9ec' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  }
+  textarea::-webkit-scrollbar-button:horizontal { display: none; }
   /* Drop-down lists: no bright ring or system blue, just a soft yellow (the cubes' colour) under the mouse.
      Chrome/Edge 135+ let the open list be styled (appearance: base-select); older ones keep their own list. */
   select:focus, select:focus-visible { outline: none; }
@@ -723,6 +773,9 @@
   .field-row { display: flex; gap: 14px; flex-wrap: wrap; }
   .field-row > div { flex: 1; min-width: 160px; }
   .questions-list { display: flex; flex-direction: column; gap: 10px; }
+  .team-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: start; }
+  .team-column { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+  @media (max-width: 760px) { .team-columns { grid-template-columns: 1fr; } }
   .question-row {
     border: 1px dashed var(--border);
     border-radius: 10px;
@@ -976,6 +1029,7 @@ tabButtons.forEach((btn) => {
 const DESIGN_SECTIONS = [
   { id: 'general', label: 'Дизайн', render: renderGeneralSection },
   { id: 'flow', label: 'Конструктор игры', render: renderFlowSection },
+  { id: 'controls', label: 'Управление', render: renderControlsSection },
 ];
 let activeDesignSection = null;
 let designObjectUrls = [];
@@ -996,6 +1050,7 @@ function setActiveDesignSection(id) {
   renderDesignSectionsList();
   const section = DESIGN_SECTIONS.find((s) => s.id === id);
   stopSoundPreview();
+  if (stopHotkeyCapture) stopHotkeyCapture();
   designObjectUrls.forEach((url) => URL.revokeObjectURL(url));
   designObjectUrls = [];
   designSectionContent.innerHTML = '';
@@ -1602,6 +1657,7 @@ function renderStageWordSlot() {
 // ---------- Design: settings.json (read by the game at build time) ----------
 const DEFAULT_SETTINGS = {
   scorePoints: 100, fontName: '', stageWord: 'Этап', gameFlow: null, teamNames: null, questionBox: null,
+  hotkeys: null,
 };
 
 async function loadSettings(handle) {
@@ -1617,6 +1673,7 @@ async function loadSettings(handle) {
   settings.gameFlow = normalizeGameFlow(settings.gameFlow);
   settings.teamNames = normalizeTeamNames(settings.teamNames);
   settings.questionBox = normalizeQuestionBox(settings.questionBox);
+  settings.hotkeys = normalizeHotkeys(settings.hotkeys);
   // A freshly created or broken file would stop the game from building, so it is rewritten right away.
   if (!parsed) await writeSettingsFile(handle, settings);
   return settings;
@@ -1628,6 +1685,222 @@ function writeSettingsFile(handle, settings) {
 
 function saveSettings() {
   return writeSettingsFile(state.settingsHandle, state.settings);
+}
+
+// ---------- Design tab: "Управление" — which key does what in the game ----------
+// The game reads settings.hotkeys the same way (hotkeys.const.ts): keys are physical ones (event.code), so the
+// layout doesn't matter; numpad digits are the digits; anything missing, broken or repeated means the defaults.
+const HOTKEY_GROUPS = [
+  { title: 'Переход между слайдами', actions: [
+    { id: 'next', label: 'Следующий слайд', code: 'ArrowRight' },
+    { id: 'prev', label: 'Предыдущий слайд', code: 'ArrowLeft' },
+  ] },
+  { get title() { return 'Во время ' + W.gen.toLowerCase(); }, actions: [
+    { id: 'show', label: 'Показать вопрос', hint: 'Следующий вопрос и запуск таймера', code: 'Space' },
+    { id: 'team1', label: 'Баллы команде 1', hint: 'На слайде «Победный балл» — балл команде 1', code: 'Digit1' },
+    { id: 'team2', label: 'Баллы команде 2', hint: 'На слайде «Победный балл» — балл команде 2', code: 'Digit2' },
+    { id: 'hide', label: 'Убрать вопрос без баллов', hint: 'Когда никто не ответил', code: 'KeyZ' },
+    { id: 'stopTimer', label: 'Обновить таймер', code: 'KeyR' },
+    { id: 'turnsMode', label: 'Режим игры «по очереди»', hint: 'Включить или выключить: одна команда светится, другая затемнена', code: 'KeyG' },
+    { id: 'switchTeam', label: 'Смена команды', hint: 'Подсветить другую команду в режиме «по очереди»', code: 'KeyT' },
+  ] },
+];
+const HOTKEY_ACTIONS = HOTKEY_GROUPS.flatMap((group) => group.actions);
+const DEFAULT_HOTKEYS = Object.fromEntries(HOTKEY_ACTIONS.map((a) => [a.id, a.code]));
+// Keys the browser or the Constructor itself needs: reload, fullscreen, dev tools, focus moves, the cancel key.
+const HOTKEY_BLOCKED = {
+  Escape: 'Esc отменяет назначение', Tab: 'Tab переключает поля в браузере',
+  F5: 'F5 перезагружает страницу', F11: 'F11 включает полноэкранный режим', F12: 'F12 открывает инструменты браузера',
+};
+const HOTKEY_MODIFIERS = ['ShiftLeft', 'ShiftRight', 'ControlLeft', 'ControlRight', 'AltLeft', 'AltRight',
+  'MetaLeft', 'MetaRight', 'OSLeft', 'OSRight', 'CapsLock', 'ContextMenu'];
+const HOTKEY_NAMES = {
+  ArrowRight: '→', ArrowLeft: '←', ArrowUp: '↑', ArrowDown: '↓', Space: 'Пробел', Enter: 'Enter',
+  NumpadEnter: 'Num Enter', Backspace: 'Backspace', Delete: 'Delete', Insert: 'Insert', Home: 'Home', End: 'End',
+  PageUp: 'PageUp', PageDown: 'PageDown', Minus: '-', Equal: '=', BracketLeft: '[', BracketRight: ']',
+  Backslash: '\\', Semicolon: ';', Quote: "'", Comma: ',', Period: '.', Slash: '/', Backquote: '`',
+  NumpadAdd: 'Num +', NumpadSubtract: 'Num −', NumpadMultiply: 'Num *', NumpadDivide: 'Num /', NumpadDecimal: 'Num .',
+};
+
+function normalizeHotkeyCode(code) {
+  return /^Numpad\d$/.test(code) ? 'Digit' + code.slice(6) : code;
+}
+
+function normalizeHotkeys(raw) {
+  const source = raw && typeof raw === 'object' ? raw : {};
+  const hotkeys = { ...DEFAULT_HOTKEYS };
+  HOTKEY_ACTIONS.forEach(({ id }) => {
+    if (typeof source[id] === 'string' && source[id]) hotkeys[id] = normalizeHotkeyCode(source[id]);
+  });
+  const codes = Object.values(hotkeys);
+  return new Set(codes).size === codes.length ? hotkeys : { ...DEFAULT_HOTKEYS };
+}
+
+// The Russian letter on the same key (ЙЦУКЕН), so G reads G/П.
+const HOTKEY_RUSSIAN = {
+  KeyQ: 'Й', KeyW: 'Ц', KeyE: 'У', KeyR: 'К', KeyT: 'Е', KeyY: 'Н', KeyU: 'Г', KeyI: 'Ш', KeyO: 'Щ', KeyP: 'З',
+  BracketLeft: 'Х', BracketRight: 'Ъ', KeyA: 'Ф', KeyS: 'Ы', KeyD: 'В', KeyF: 'А', KeyG: 'П', KeyH: 'Р', KeyJ: 'О',
+  KeyK: 'Л', KeyL: 'Д', Semicolon: 'Ж', Quote: 'Э', KeyZ: 'Я', KeyX: 'Ч', KeyC: 'С', KeyV: 'М', KeyB: 'И',
+  KeyN: 'Т', KeyM: 'Ь', Comma: 'Б', Period: 'Ю', Backquote: 'Ё',
+};
+
+// A key's name as printed on the keyboard: KeyG → G, Digit1 → 1, Space → Пробел.
+function hotkeyMainName(code) {
+  if (HOTKEY_NAMES[code]) return HOTKEY_NAMES[code];
+  if (/^Key[A-Z]$/.test(code)) return code.slice(3);
+  if (/^Digit\d$/.test(code)) return code.slice(5);
+  return code;
+}
+
+// For texts: G/П.
+function hotkeyName(code) {
+  return hotkeyMainName(code) + (HOTKEY_RUSSIAN[code] ? '/' + HOTKEY_RUSSIAN[code] : '');
+}
+
+// For the key buttons: G with a dimmer /П after it.
+function fillHotkeyName(el, code) {
+  el.textContent = hotkeyMainName(code);
+  if (HOTKEY_RUSSIAN[code]) {
+    const alt = document.createElement('span');
+    alt.className = 'hotkey-alt';
+    alt.textContent = '/' + HOTKEY_RUSSIAN[code];
+    el.appendChild(alt);
+  }
+}
+
+function hotkeyActionLabel(id) {
+  return HOTKEY_ACTIONS.find((a) => a.id === id).label;
+}
+
+// Gives the action its key and saves; a key already used by another action is swapped over to it.
+async function assignHotkey(id, code) {
+  const previous = state.settings.hotkeys;
+  if (previous[id] === code) return;
+  const next = { ...previous };
+  const holder = Object.keys(next).find((other) => next[other] === code);
+  if (holder) next[holder] = previous[id];
+  next[id] = code;
+  state.settings.hotkeys = next;
+  try {
+    await saveSettings();
+    const swapped = holder
+      ? '; «' + hotkeyActionLabel(holder) + '» теперь на ' + hotkeyName(next[holder])
+      : '';
+    setStatus('«' + hotkeyActionLabel(id) + '» — ' + hotkeyName(code) + swapped + ' — сохранено', 'saved');
+  } catch (e) {
+    state.settings.hotkeys = previous;
+    setStatus('Не удалось сохранить управление: ' + e.message, 'dirty');
+  }
+  refreshDesign();
+}
+
+// Only one key button listens at a time; this stops the one that does.
+let stopHotkeyCapture = null;
+
+function startHotkeyCapture(id, btn, error) {
+  if (stopHotkeyCapture) stopHotkeyCapture();
+  error.textContent = '';
+  btn.classList.add('capturing');
+  btn.textContent = 'Нажми клавишу…';
+
+  const onKey = (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.repeat) return;
+    const code = normalizeHotkeyCode(event.code);
+    if (code === 'Escape') {
+      stop();
+      return;
+    }
+    if (HOTKEY_MODIFIERS.includes(code)) return;
+    if (!code || HOTKEY_BLOCKED[code] || event.ctrlKey || event.altKey || event.metaKey || event.shiftKey) {
+      error.textContent = HOTKEY_BLOCKED[code]
+        || (code ? 'Сочетания с Ctrl, Alt, Shift и Win не подходят — нужна одна клавиша' : 'Эту клавишу браузер не различает');
+      return;
+    }
+    stop();
+    assignHotkey(id, code);
+  };
+  const onMouseDown = (event) => {
+    if (event.target !== btn) stop();
+  };
+  const stop = () => {
+    document.removeEventListener('keydown', onKey, true);
+    document.removeEventListener('mousedown', onMouseDown, true);
+    btn.classList.remove('capturing');
+    fillHotkeyName(btn, state.settings.hotkeys[id]);
+    stopHotkeyCapture = null;
+  };
+
+  document.addEventListener('keydown', onKey, true);
+  document.addEventListener('mousedown', onMouseDown, true);
+  stopHotkeyCapture = stop;
+}
+
+function renderHotkeyRow(action) {
+  const { row, controls } = renderDesignSlot(action.label);
+  if (action.hint) {
+    const hint = document.createElement('span');
+    hint.className = 'field-hint hotkey-hint';
+    hint.textContent = action.hint;
+    row.querySelector('.design-slot-label').appendChild(hint);
+  }
+
+  const code = state.settings.hotkeys[action.id];
+  if (code !== action.code) {
+    const resetBtn = createIconBtn(ICON_RESET, 'Вернуть ' + hotkeyName(action.code));
+    resetBtn.onclick = () => assignHotkey(action.id, action.code);
+    controls.appendChild(resetBtn);
+  }
+
+  const keyBtn = document.createElement('button');
+  keyBtn.type = 'button';
+  keyBtn.className = 'hotkey-btn';
+  fillHotkeyName(keyBtn, code);
+  keyBtn.title = 'Нажми, затем нажми новую клавишу (Esc — отмена)';
+  controls.appendChild(keyBtn);
+
+  const error = document.createElement('span');
+  error.className = 'field-error hotkey-error';
+  controls.appendChild(error);
+
+  keyBtn.onclick = () => {
+    if (keyBtn.classList.contains('capturing')) {
+      stopHotkeyCapture();
+      return;
+    }
+    startHotkeyCapture(action.id, keyBtn, error);
+  };
+  return row;
+}
+
+function renderControlsSection(container) {
+  if (stopHotkeyCapture) stopHotkeyCapture();
+  HOTKEY_GROUPS.forEach((group) => {
+    container.appendChild(renderDesignBlock(group.title, (block) => {
+      group.actions.forEach((action) => block.appendChild(renderHotkeyRow(action)));
+    }));
+  });
+
+  const isDefault = HOTKEY_ACTIONS.every((a) => state.settings.hotkeys[a.id] === a.code);
+  const resetAll = document.createElement('button');
+  resetAll.type = 'button';
+  resetAll.className = 'hotkeys-reset-all';
+  resetAll.textContent = 'Вернуть управление по умолчанию';
+  resetAll.disabled = isDefault;
+  resetAll.onclick = async () => {
+    const previous = state.settings.hotkeys;
+    state.settings.hotkeys = { ...DEFAULT_HOTKEYS };
+    try {
+      await saveSettings();
+      setStatus('Управление по умолчанию — сохранено', 'saved');
+    } catch (e) {
+      state.settings.hotkeys = previous;
+      setStatus('Не удалось сохранить управление: ' + e.message, 'dirty');
+    }
+    refreshDesign();
+  };
+  container.appendChild(resetAll);
 }
 
 // ---------- Design tab: "Конструктор игры" — the order of slides the game walks through ----------
@@ -1657,6 +1930,7 @@ function normalizeGameFlow(raw) {
     stagePreview: flow.stagePreview !== false,
     afterStage: AFTER_STAGE_OPTIONS.some((o) => o.value === flow.afterStage) ? flow.afterStage : 'winner',
     teamsMode: flow.teamsMode === 'preset' ? 'preset' : 'live',
+    endInput: flow.endInput !== false,
   };
 }
 
@@ -1737,6 +2011,7 @@ function renderFlowRow(flowBlock) {
   if (flowBlock.id !== 'stages') {
     head.appendChild(renderFlowSwitch(flowBlock));
     if (flowBlock.id === 'teams') row.appendChild(renderTeamsModeBody());
+    if (flowBlock.id === 'end') row.appendChild(renderEndBody());
     return row;
   }
 
@@ -1801,6 +2076,23 @@ const TEAMS_MODE_OPTIONS = [
     },
   },
 ];
+
+// The end slide's text field (for the winner's name); off leaves just the background.
+function renderEndBody() {
+  const body = document.createElement('div');
+  body.className = 'flow-stage-body';
+  const item = renderFlowStageItem(body, 'Поле для ввода текста');
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  input.className = 'switch';
+  input.checked = state.settings.gameFlow.endInput;
+  input.setAttribute('aria-label', 'Показывать поле для ввода текста на финальном слайде');
+  input.onchange = () => changeGameFlow((next) => {
+    next.endInput = input.checked;
+  }, 'Поле для ввода текста в финале ' + (input.checked ? 'включено' : 'выключено'));
+  item.appendChild(input);
+  return body;
+}
 
 function renderTeamsModeBody() {
   const body = document.createElement('div');
@@ -2669,6 +2961,7 @@ const ICON_PLUS = svgIcon('<path d="M12 5v14M5 12h14"/>');
 const ICON_CHEVRON = svgIcon('<path d="M9 5l7 7-7 7"/>');
 const ICON_PLAY = svgIcon('<path d="M8 5.5v13l10.5-6.5z"/>');
 const ICON_STOP = svgIcon('<rect x="6.5" y="6.5" width="11" height="11" rx="2"/>');
+const ICON_RESET = svgIcon('<path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5"/><path d="M4 4v4.5h4.5"/>');
 const ICON_REPLACE = svgIcon('<path d="M4.5 11a7.5 7.5 0 0 1 13.2-4.3L20 9"/><path d="M20 4.5V9h-4.5"/><path d="M19.5 13a7.5 7.5 0 0 1-13.2 4.3L4 15"/><path d="M4 19.5V15h4.5"/>');
 
 function createIconBtn(iconSvg, title, danger) {
@@ -3034,10 +3327,17 @@ function renderRoundBody(round, index) {
   // Questions: one list, or one per team in the team types
   if (isTeamRoundType(round.type)) {
     if (!Array.isArray(round.teamQuestions)) round.teamQuestions = [];
+    // Side by side, like the teams on the game screen: the left team's list on the left.
+    const columns = document.createElement('div');
+    columns.className = 'team-columns';
     ['Задания команды 1 (левой)', 'Задания команды 2 (правой)'].forEach((title, team) => {
       if (!Array.isArray(round.teamQuestions[team])) round.teamQuestions[team] = [];
-      renderQuestionList(body, round, index, round.teamQuestions[team], 'team' + team, title);
+      const column = document.createElement('div');
+      column.className = 'team-column';
+      renderQuestionList(column, round, index, round.teamQuestions[team], 'team' + team, title);
+      columns.appendChild(column);
     });
+    body.appendChild(columns);
   } else if (round.type !== RoundType.Timer) {
     if (!round.questions) round.questions = [];
     renderQuestionList(body, round, index, round.questions, 'main', 'Вопросы');

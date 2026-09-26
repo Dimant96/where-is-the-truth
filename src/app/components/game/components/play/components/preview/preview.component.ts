@@ -4,6 +4,7 @@ import {RoundService} from '../../services/round.service';
 import {map} from 'rxjs/operators';
 import {GameFlowService} from '../../../../services/game-flow.service';
 import {GameStep} from '../../../../interfaces/game-step.interface';
+import {isHotkey} from '../../../../services/constants/hotkeys.const';
 import settings from '../../../../../../../assets/settings.json';
 
 const defaultStageWord = 'Этап';
@@ -25,14 +26,13 @@ export class PreviewComponent implements OnInit {
         .params
         .pipe(map(({round}) => this.roundService.getRound(round)));
 
-    @HostListener('document:keydown.ArrowRight')
-    keydownArrowRight() {
-        this.gameFlowService.next(this.step);
-    }
-
-    @HostListener('document:keydown.ArrowLeft')
-    keydownArrowLeft() {
-        this.gameFlowService.prev(this.step);
+    @HostListener('document:keydown', ['$event'])
+    keydown(event: KeyboardEvent) {
+        if (isHotkey(event, 'next')) {
+            this.gameFlowService.next(this.step);
+        } else if (isHotkey(event, 'prev')) {
+            this.gameFlowService.prev(this.step);
+        }
     }
 
     constructor(

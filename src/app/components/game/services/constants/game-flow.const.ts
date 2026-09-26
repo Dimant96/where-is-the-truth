@@ -11,6 +11,8 @@ export interface GameFlow {
     stagePreview: boolean;
     afterStage: AfterStage;
     teamsMode: TeamsMode;
+    // Whether the end slide has the text field (for the winner's name) or shows just the background.
+    endInput: boolean;
 }
 
 const blockIds: FlowBlockId[] = ['welcome', 'teams', 'stages', 'end'];
@@ -39,6 +41,7 @@ function readGameFlow(raw: any): GameFlow {
         stagePreview: flow.stagePreview !== false,
         afterStage: afterStageValues.includes(flow.afterStage) ? flow.afterStage : 'winner',
         teamsMode: flow.teamsMode === 'preset' ? 'preset' : 'live',
+        endInput: flow.endInput !== false,
     };
 }
 

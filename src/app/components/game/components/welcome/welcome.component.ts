@@ -1,6 +1,7 @@
 import {Component, OnInit, ChangeDetectionStrategy, HostListener} from '@angular/core';
 import {GameFlowService} from '../../services/game-flow.service';
 import {GameStep} from '../../interfaces/game-step.interface';
+import {isHotkey} from '../../services/constants/hotkeys.const';
 
 const step: GameStep = {kind: 'welcome'};
 
@@ -11,14 +12,13 @@ const step: GameStep = {kind: 'welcome'};
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class WelcomeComponent implements OnInit {
-    @HostListener('document:keydown.ArrowRight')
-    keydownArrowRight() {
-        this.gameFlowService.next(step);
-    }
-
-    @HostListener('document:keydown.ArrowLeft')
-    keydownArrowLeft() {
-        this.gameFlowService.prev(step);
+    @HostListener('document:keydown', ['$event'])
+    keydown(event: KeyboardEvent) {
+        if (isHotkey(event, 'next')) {
+            this.gameFlowService.next(step);
+        } else if (isHotkey(event, 'prev')) {
+            this.gameFlowService.prev(step);
+        }
     }
 
     constructor(private gameFlowService: GameFlowService) {}
