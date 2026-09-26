@@ -1,5 +1,49 @@
 {
   "scorePoints": 100,
   "fontName": "Kelly Slab",
-  "stageWord": "Этап"
+  "stageWord": "Этап",
+  "gameFlow": {
+    "blocks": [
+      {
+        "id": "welcome",
+        "enabled": true
+      },
+      {
+        "id": "teams",
+        "enabled": true
+      },
+      {
+        "id": "stages",
+        "enabled": true
+      },
+      {
+        "id": "end",
+        "enabled": true
+      }
+    ],
+    "stagePreview": true,
+    "afterStage": "winner",
+    "teamsMode": "live",
+    "endInput": false
+  },
+  "teamNames": [
+    "",
+    ""
+  ],
+  "questionBox": {
+    "opacity": 60,
+    "border": true,
+    "borderHue": 32
+  },
+  "hotkeys": {
+    "next": "ArrowRight",
+    "prev": "ArrowLeft",
+    "show": "Space",
+    "team1": "Digit1",
+    "team2": "Digit2",
+    "hide": "KeyZ",
+    "stopTimer": "KeyR",
+    "turnsMode": "KeyG",
+    "switchTeam": "KeyT"
+  }
 }
